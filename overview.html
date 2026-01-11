@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TripLedger - Overview</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; } 
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* Dark Mode Support */
+        @media (prefers-color-scheme: dark) {
+            body { background-color: #111827 !important; color: #f9fafb !important; }
+            #app { background-color: #111827 !important; }
+            header { background-color: #1f2937 !important; }
+            .bg-gray-50 { background-color: #1f2937 !important; }
+            .bg-white { background-color: #374151 !important; }
+            .text-slate-900 { color: #f9fafb !important; }
+            .text-slate-800 { color: #e5e7eb !important; }
+            .text-slate-700 { color: #d1d5db !important; }
+            .text-gray-500 { color: #9ca3af !important; }
+            .text-gray-400 { color: #6b7280 !important; }
+            .text-gray-300 { color: #4b5563 !important; }
+            .border-gray-100 { border-color: #374151 !important; }
+            .border-gray-200 { border-color: #4b5563 !important; }
+            .bg-gray-100 { background-color: #374151 !important; }
+            .hover\:bg-gray-100:hover { background-color: #4b5563 !important; }
+            .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3) !important; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-slate-800 h-screen overflow-hidden">
+    <div id="app" class="max-w-md mx-auto h-full bg-gray-50 relative flex flex-col shadow-2xl">
+        
+        <header class="px-4 py-3 flex items-center relative bg-gray-50 z-10 shrink-0" v-if="currentBook">
+            <a href="index.html" class="w-10 h-10 flex items-center justify-center bg-white rounded-full shadow-sm text-slate-700 hover:bg-gray-100 transition z-20" title="返回帳本列表">
+                <i class="fas fa-book"></i>
+            </a>
+            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <h1 class="text-lg font-black text-slate-900">總覽</h1>
+                <h2 class="text-xs font-medium text-gray-500">{{ currentBook.book_title }}</h2>
+            </div>
+            <div class="ml-auto z-20">
+                <button @click="copyLink" class="w-10 h-10 flex items-center justify-center bg-white rounded-full shadow-sm text-yellow-600 hover:bg-gray-100 transition">
+                    <i class="fas fa-share-alt"></i>
+                </button>
+            </div>
+        </header>
+        
+        <!-- 總金額顯示區域 -->
+        <div class="px-6 pt-4 pb-4 bg-gray-50" v-if="currentBook">
+            <div class="flex items-end gap-2">
+                <span class="text-4xl font-bold text-blue-600 font-mono tracking-tighter">{{ formatMoney(total) }}</span>
+                <span class="text-sm font-bold text-gray-400 mb-1">{{ currentBook.base_currency }} Total</span>
+            </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto px-6 pt-4 pb-28 hide-scrollbar">
+            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Recent Activity</h3>
+            <div v-if="ledgerList.length === 0" class="text-center py-10 text-gray-300">尚無紀錄</div>
+            
+            <div class="space-y-3">
+                <div v-for="item in ledgerList" :key="item.ledger_id" class="bg-white p-4 rounded-2xl shadow-sm flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-xl">{{ getCategoryIcon(item.pay_category) }}</div>
+                        <div>
+                            <div class="font-bold text-slate-800">{{ item.pay_item }}</div>
+                            <div class="text-xs text-gray-400">{{ formatDateShort(item.shop_date) }} · {{ item.pay_payer }}</div>
+                        </div>
+                    </div>
+                    <div class="font-bold font-mono text-slate-900">{{ formatMoney(item.pay_amount) }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 浮動新增按鈕 -->
+        <div class="absolute bottom-24 right-6 z-40">
+            <a href="record.html" class="bg-slate-900 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-xl hover:scale-110 transition active:scale-95">
+                <i class="fas fa-plus"></i>
+            </a>
+        </div>
+
+        <!-- 底部工具列 -->
+        <div class="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-30 safe-area-bottom">
+            <div class="max-w-md mx-auto px-2 py-2 flex items-center justify-around">
+                <a href="overview.html" class="flex flex-col items-center justify-center py-2 px-3 rounded-xl transition active:bg-gray-50 flex-1">
+                    <i class="fas fa-home text-lg mb-1 text-slate-900"></i>
+                    <span class="text-xs font-bold text-slate-900">總覽</span>
+                </a>
+                
+                <a href="records.html" class="flex flex-col items-center justify-center py-2 px-3 rounded-xl transition active:bg-gray-50 flex-1">
+                    <i class="fas fa-list text-lg mb-1 text-gray-400"></i>
+                    <span class="text-xs font-bold text-gray-400">紀錄</span>
+                </a>
+                
+                <a href="statistics.html" class="flex flex-col items-center justify-center py-2 px-3 rounded-xl transition active:bg-gray-50 flex-1">
+                    <i class="fas fa-chart-pie text-lg mb-1 text-gray-400"></i>
+                    <span class="text-xs font-bold text-gray-400">統計</span>
+                </a>
+                
+                <a href="settings.html" class="flex flex-col items-center justify-center py-2 px-3 rounded-xl transition active:bg-gray-50 flex-1">
+                    <i class="fas fa-cog text-lg mb-1 text-gray-400"></i>
+                    <span class="text-xs font-bold text-gray-400">設定</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted, computed } = Vue
+        const { createClient } = supabase
+        const SUPABASE_URL = 'https://wbhertwvqtfdwderscmj.supabase.co'
+        const SUPABASE_KEY = 'sb_publishable_8xMP9OKEx90C7q1YSz0XBw_tUma_cPF'
+        const _supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
+
+        createApp({
+            setup() {
+                const currentBook = ref(null)
+                const ledgerList = ref([])
+                
+                const total = computed(() => ledgerList.value.reduce((acc, curr) => acc + Number(curr.pay_amount), 0))
+
+                onMounted(async () => {
+                    // 1. 從 LocalStorage 拿 ID
+                    const bookId = localStorage.getItem('active_book_id')
+                    
+                    // 如果沒有 ID，踢回首頁
+                    if (!bookId) {
+                        window.location.href = 'index.html'
+                        return
+                    }
+
+                    // 2. 抓取資料
+                    const { data: book } = await _supabase.from('books').select('*').eq('book_id', bookId).single()
+                    currentBook.value = book
+                    
+                    const { data: list } = await _supabase.from('ledger').select('*').eq('book_id', bookId).order('shop_date', { ascending: false })
+                    ledgerList.value = list || []
+                })
+
+                const copyLink = () => {
+                    alert('分享連結功能需配合部署網址')
+                }
+
+                // UI Helpers
+                const formatMoney = (n) => Number(n).toLocaleString()
+                const formatDateShort = (ts) => new Date(ts).getMonth()+1 + '/' + new Date(ts).getDate()
+                const getCategoryIcon = (c) => ({'食物':'🍔','交通':'🚆','購物':'🛍️','住宿':'🏨'}[c] || '📄')
+
+                return { currentBook, ledgerList, total, formatMoney, formatDateShort, getCategoryIcon, copyLink }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TripLedger - Home</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        /* 隱藏捲軸 */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Modal 動畫效果 */
+        .slide-up-enter-active, .slide-up-leave-active { transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .slide-up-enter-from, .slide-up-leave-to { transform: translateY(100%); }
+        .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
+        .fade-enter-from, .fade-leave-to { opacity: 0; }
+        
+        /* Dark Mode Support */
+        @media (prefers-color-scheme: dark) {
+            body { background-color: #111827 !important; color: #f9fafb !important; }
+            #app { background-color: #1f2937 !important; }
+            .bg-gray-50 { background-color: #111827 !important; }
+            .bg-white { background-color: #374151 !important; }
+            .text-slate-900 { color: #f9fafb !important; }
+            .text-slate-800 { color: #e5e7eb !important; }
+            .text-slate-700 { color: #d1d5db !important; }
+            .text-gray-500 { color: #9ca3af !important; }
+            .text-gray-400 { color: #6b7280 !important; }
+            .text-gray-300 { color: #4b5563 !important; }
+            .border-gray-100 { border-color: #374151 !important; }
+            .border-gray-200 { border-color: #4b5563 !important; }
+            .bg-gray-100 { background-color: #374151 !important; }
+            .hover\:bg-gray-100:hover { background-color: #4b5563 !important; }
+            .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3) !important; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-slate-800 h-screen overflow-hidden">
+    
+    <div id="app" class="max-w-md mx-auto h-full bg-white shadow-2xl relative overflow-hidden flex flex-col">
+        
+        <div class="px-6 pt-12 pb-6">
+            <h1 class="text-3xl font-black text-slate-900 tracking-tight">My Trips</h1>
+            <p class="text-gray-400 text-sm mt-1">選擇一本帳本開始記帳</p>
+        </div>
+
+        <div class="flex-1 overflow-y-auto px-6 pb-24 space-y-4 hide-scrollbar">
+            <div v-if="loadingBooks" class="text-center py-10 text-gray-400"><i class="fas fa-circle-notch fa-spin text-2xl"></i></div>
+            
+            <div v-for="(book, index) in books" :key="book.book_id" 
+                 @click="enterBook(book)"
+                 class="group relative overflow-hidden rounded-[2rem] p-6 text-white shadow-lg cursor-pointer transition active:scale-95 transform"
+                 :class="getGradient(index)">
+                <div class="relative z-10 flex justify-between items-start">
+                    <div>
+                        <span class="inline-block px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold mb-3 border border-white/10">{{ book.base_currency }}</span>
+                        <h2 class="text-2xl font-bold leading-tight mb-1">{{ book.book_title }}</h2>
+                        <p class="text-white/70 text-xs">{{ formatDate(book.created_at) }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <button @click="openCreateModal" class="w-full py-6 rounded-[2rem] border-2 border-dashed border-gray-300 text-gray-400 font-bold hover:border-gray-400 transition hover:bg-gray-50">
+                <i class="fas fa-plus mb-1"></i><br>建立新旅程
+            </button>
+        </div>
+
+        <transition name="fade">
+            <div v-if="showModal" class="fixed inset-0 bg-black/50 z-40" @click="closeModal"></div>
+        </transition>
+
+        <transition name="slide-up">
+            <div v-if="showModal" class="fixed bottom-0 left-0 right-0 sm:inset-0 z-50 flex items-end sm:items-center justify-center p-4 pointer-events-none">
+                <div class="bg-white w-full max-w-[400px] rounded-[2rem] p-6 pt-8 shadow-2xl relative pointer-events-auto" @click.stop>
+                    
+                    <div class="flex justify-between items-start mb-8">
+                        <h2 class="text-[32px] font-black text-slate-900 leading-tight">建立新旅程</h2>
+                        <button @click="closeModal" class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-slate-500 hover:bg-gray-200 transition shrink-0">
+                            <i class="fas fa-times text-lg"></i>
+                        </button>
+                    </div>
+
+                    <div class="mb-10">
+                        <label class="block text-sm font-bold text-gray-500 mb-2">旅程名稱</label>
+                        <div class="relative">
+                            <input ref="titleInput"
+                                   v-model="newBookTitle"
+                                   type="text"
+                                   class="w-full text-xl font-bold text-slate-900 py-3 bg-transparent outline-none border-b-[3px] border-teal-500 focus:border-teal-600 transition placeholder-gray-300 pr-10"
+                                   placeholder="例如：東京滑雪">
+                            
+                            <button v-if="newBookTitle" @click="clearInput" class="absolute right-0 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-gray-300 hover:text-gray-500 transition">
+                                <i class="fas fa-times-circle"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button @click="confirmCreateBook" :disabled="!newBookTitle || creating" 
+                            class="w-full bg-teal-500 hover:bg-teal-600 disabled:bg-gray-300 disabled:text-gray-500 text-white font-bold py-4 rounded-[2rem] text-lg transition mb-2 shadow-lg shadow-teal-500/30 disabled:shadow-none flex items-center justify-center gap-2">
+                        <i v-if="creating" class="fas fa-circle-notch fa-spin"></i>
+                        <span>{{ creating ? '建立中...' : '立即建立' }}</span>
+                    </button>
+
+                </div>
+            </div>
+        </transition>
+
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted, nextTick, watch } = Vue
+        const { createClient } = supabase
+
+        // 設定 Supabase
+        const SUPABASE_URL = 'https://wbhertwvqtfdwderscmj.supabase.co'
+        const SUPABASE_KEY = 'sb_publishable_8xMP9OKEx90C7q1YSz0XBw_tUma_cPF'
+        const _supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
+
+        createApp({
+            setup() {
+                // 資料狀態
+                const books = ref([])
+                const loadingBooks = ref(false)
+                
+                // Modal 相關狀態
+                const showModal = ref(false)
+                const newBookTitle = ref('')
+                const titleInput = ref(null)
+                const creating = ref(false)
+
+                // 歷史紀錄 LocalStorage
+                const getHistory = () => JSON.parse(localStorage.getItem('trip_history') || '[]')
+                const saveToHistory = (id) => {
+                    let h = getHistory(); if(!h.includes(id)) { h.push(id); localStorage.setItem('trip_history', JSON.stringify(h)) }
+                }
+
+                // 載入帳本列表
+                const loadBooks = async () => {
+                    loadingBooks.value = true
+                    const historyIds = getHistory()
+                    if (historyIds.length > 0) {
+                        const { data } = await _supabase.from('books').select('*').in('book_id', historyIds).order('created_at', { ascending: false })
+                        books.value = data || []
+                    }
+                    loadingBooks.value = false
+                }
+
+                // 進入帳本
+                const enterBook = (book) => {
+                    localStorage.setItem('active_book_id', book.book_id)
+                    window.location.href = 'overview.html'
+                }
+
+                // === Modal 控制邏輯 ===
+                
+                // 開啟 Modal
+                const openCreateModal = () => {
+                    newBookTitle.value = '' // 清空之前的輸入
+                    showModal.value = true
+                }
+
+                // 關閉 Modal
+                const closeModal = () => {
+                    showModal.value = false
+                }
+
+                // 清除輸入
+                const clearInput = () => {
+                    newBookTitle.value = ''
+                    titleInput.value?.focus()
+                }
+
+                // 自動聚焦 (當 Modal 開啟時)
+                watch(showModal, (val) => {
+                    if (val) {
+                        nextTick(() => {
+                            titleInput.value?.focus()
+                        })
+                    }
+                })
+
+                // === 核心：建立新帳本 (原本的 createBook 邏輯移到這裡) ===
+                const confirmCreateBook = async () => {
+                    if(!newBookTitle.value) return
+                    
+                    creating.value = true
+                    
+                    // 1. 寫入 Books 資料表
+                    const { data } = await _supabase.from('books')
+                        .insert({ book_title: newBookTitle.value, base_currency: 'TWD' })
+                        .select()
+                        .single()
+                    
+                    if(data) {
+                        saveToHistory(data.book_id)
+                        
+                        // 2. 建立預設成員
+                        await _supabase.from('members').insert([
+                            { book_id: data.book_id, member_name: '我', avatar_seed: 'Me' }
+                        ])
+                        
+                        // 3. 從 common 表複製選項到 options 表
+                        const { data: commonOptions } = await _supabase.from('common').select('*')
+                        if(commonOptions && commonOptions.length > 0) {
+                            const optionsToInsert = commonOptions.map(opt => ({
+                                book_id: data.book_id,
+                                category_type: opt.category_type,
+                                category_name: opt.category_name,
+                                category_sort: 99 // 預設排序
+                            }))
+                            await _supabase.from('options').insert(optionsToInsert)
+                        }
+                        
+                        // 4. 關閉視窗並跳轉
+                        closeModal()
+                        enterBook(data)
+                    } else {
+                        alert('建立失敗，請稍後再試')
+                    }
+                    creating.value = false
+                }
+
+                // UI Helpers
+                const getGradient = (i) => ['bg-gradient-to-br from-slate-800 to-slate-900', 'bg-gradient-to-br from-blue-600 to-indigo-700', 'bg-gradient-to-br from-emerald-500 to-teal-700'][i%3]
+                const formatDate = (ts) => new Date(ts).toLocaleDateString()
+
+                onMounted(() => loadBooks())
+
+                return { 
+                    books, loadingBooks, 
+                    // Modal 變數
+                    showModal, newBookTitle, titleInput, creating,
+                    // 功能函數
+                    enterBook, openCreateModal, closeModal, clearInput, confirmCreateBook,
+                    // UI 函數
+                    getGradient, formatDate 
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>

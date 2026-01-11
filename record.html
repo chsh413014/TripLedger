@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TripLedger - Add Record</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Modal Transitions */
+        .fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
+        .fade-enter-from, .fade-leave-to { opacity: 0; }
+        
+        .slide-up-enter-active, .slide-up-leave-active { transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .slide-up-enter-from, .slide-up-leave-to { transform: translateY(100%); }
+
+        /* Dark Mode Support for All Pages */
+        @media (prefers-color-scheme: dark) {
+            body { background-color: #111827 !important; color: #f9fafb !important; }
+            #app { background-color: #1f2937 !important; }
+            header { background-color: #1f2937 !important; }
+            .bg-gray-50 { background-color: #111827 !important; }
+            .bg-white { background-color: #374151 !important; }
+            .text-slate-900 { color: #f9fafb !important; }
+            .text-slate-800 { color: #e5e7eb !important; }
+            .text-slate-700 { color: #d1d5db !important; }
+            .text-gray-500 { color: #9ca3af !important; }
+            .text-gray-400 { color: #6b7280 !important; }
+            .text-gray-300 { color: #4b5563 !important; }
+            .border-gray-50 { border-color: #374151 !important; }
+            .border-gray-100 { border-color: #374151 !important; }
+            .border-gray-200 { border-color: #4b5563 !important; }
+            .bg-gray-100 { background-color: #374151 !important; }
+            .bg-gray-200 { background-color: #4b5563 !important; }
+            .hover\:bg-gray-100:hover { background-color: #4b5563 !important; }
+            .hover\:bg-gray-50:hover { background-color: #4b5563 !important; }
+            .active\:bg-gray-50:active { background-color: #4b5563 !important; }
+            .divide-gray-100 > * { border-color: #374151 !important; }
+            .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3) !important; }
+        }
+        
+        /* Calculator Dark Mode Support */
+        @media (prefers-color-scheme: dark) {
+            .calc-container {
+                background-color: #000000 !important;
+                border-color: #374151 !important;
+            }
+            .calc-display-area {
+                background-color: #000000 !important;
+            }
+            .calc-display-text {
+                color: #ffffff !important;
+            }
+            .calc-display-text.text-gray-400 {
+                color: #9ca3af !important;
+            }
+            .calc-display-text.text-slate-900 {
+                color: #ffffff !important;
+            }
+            .calc-expression-text {
+                color: #9ca3af !important;
+            }
+            .calc-number-btn {
+                background-color: #1f2937 !important;
+                color: #ffffff !important;
+            }
+            .calc-number-btn:hover {
+                background-color: #374151 !important;
+            }
+            .calc-number-btn:active {
+                background-color: #4b5563 !important;
+            }
+            .calc-operator-btn {
+                background-color: #f97316 !important;
+                color: #ffffff !important;
+            }
+            .calc-operator-btn:hover {
+                background-color: #fb923c !important;
+            }
+            .calc-operator-btn:active {
+                background-color: #fdba74 !important;
+            }
+            .calc-ac-btn {
+                background-color: #4b5563 !important;
+                color: #ffffff !important;
+            }
+            .calc-ac-btn:hover {
+                background-color: #6b7280 !important;
+            }
+            .calc-delete-btn {
+                background-color: #1f2937 !important;
+                color: #ffffff !important;
+            }
+            .calc-delete-btn:hover {
+                background-color: #374151 !important;
+            }
+        }
+        
+        /* Custom Checkbox */
+        .custom-checkbox {
+            appearance: none;
+            background-color: #e5e7eb;
+            width: 1.25rem;
+            height: 1.25rem;
+            border-radius: 0.25rem;
+            display: grid;
+            place-content: center;
+        }
+        .custom-checkbox:checked { background-color: #64748b; }
+        .custom-checkbox::before {
+            content: "";
+            width: 0.65em;
+            height: 0.65em;
+            transform: scale(0);
+            transition: 120ms transform ease-in-out;
+            box-shadow: inset 1em 1em white;
+            transform-origin: center;
+            clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+        }
+        .custom-checkbox:checked::before { transform: scale(1); }
+    </style>
+</head>
+<body class="bg-gray-50 text-slate-800 h-screen overflow-hidden">
+    <div id="app" class="max-w-md mx-auto h-full bg-white relative flex flex-col shadow-2xl">
+        
+        <header class="px-4 py-3 flex justify-between items-center bg-white z-10 border-b border-gray-50">
+            <a :href="isEditMode ? 'records.html' : 'overview.html'" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-slate-900 text-lg">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+            <div class="text-center">
+                <h1 class="text-base font-bold text-black">{{ isEditMode ? '編輯紀錄' : '新增紀錄' }}</h1>
+                <p class="text-[10px] text-gray-400 font-bold">{{ currentBook?.book_title }}</p>
+            </div>
+            <button @click="submitForm" :disabled="!form.amount || submitting" class="px-5 py-1.5 rounded-full text-sm font-bold transition-colors" :class="form.amount ? 'bg-slate-900 text-white' : 'bg-gray-200 text-gray-400'">
+                <span v-if="!submitting">完成</span>
+                <span v-else><i class="fas fa-spinner fa-spin"></i></span>
+            </button>
+        </header>
+
+        <div class="flex-1 overflow-y-auto hide-scrollbar" v-if="isReady">
+            
+            <div class="px-5 py-3 flex justify-between items-center bg-white border-b border-gray-50">
+                <div class="flex items-center gap-1 relative">
+                    <span class="text-3xl font-black tracking-tight text-slate-900">{{ form.currency }}</span>
+                    <i class="fas fa-caret-down text-gray-400 text-sm mt-2"></i>
+                    <select v-model="form.currency" class="absolute inset-0 opacity-0 w-full h-full cursor-pointer">
+                        <option>TWD</option>
+                        <option>JPY</option>
+                        <option>USD</option>
+                    </select>
+                </div>
+                <div @click="openCalculator" class="text-right w-2/3 cursor-pointer">
+                    <span class="text-5xl font-bold" :class="showCalculator ? 'text-slate-900' : (!form.amount || form.amount === '0' || Number(form.amount) === 0 ? 'text-gray-400' : 'text-slate-900')">{{ form.amount || '0' }}</span>
+                </div>
+            </div>
+
+            <div class="px-5 divide-y divide-gray-100 bg-white">
+                
+                <div @click="openCalendarModal" class="py-3 flex items-center justify-between group cursor-pointer active:bg-gray-50 transition">
+                    <label class="font-bold text-sm text-slate-900 w-16">日期</label>
+                    <div class="flex-grow flex items-center justify-between pl-4">
+                        <span class="text-slate-900 font-medium">{{ formattedDateDisplay }}</span>
+                        <i class="far fa-calendar-alt text-gray-400 text-lg"></i>
+                    </div>
+                </div>
+
+                <div @click="showCategoryModal = true" class="py-3 flex items-center justify-between group cursor-pointer active:bg-gray-50 transition">
+                    <label class="font-bold text-sm text-slate-900 w-16">類別</label>
+                    <div class="flex-grow text-left pl-4 flex items-center gap-2">
+                        <div v-if="form.category" class="w-6 h-6 rounded-full flex items-center justify-center bg-gray-100 text-sm">
+                            <i :class="getSelectedCategoryIcon" class="text-gray-600"></i>
+                        </div>
+                        <span v-if="!form.category" class="text-gray-300 font-medium">點擊以選擇</span>
+                        <span v-else class="text-slate-900 font-medium">{{ form.category }}</span>
+                    </div>
+                    <div class="text-gray-400 text-sm flex items-center gap-1">
+                        <i class="fas fa-chevron-right text-xs"></i>
+                    </div>
+                </div>
+
+                <div class="py-3 flex items-center justify-between">
+                    <label class="font-bold text-sm text-slate-900 w-16">名稱</label>
+                    <input v-model="form.item" type="text" placeholder="點擊以編輯" 
+                        class="flex-grow text-left outline-none text-slate-900 font-medium bg-transparent placeholder:text-gray-300">
+                </div>
+                
+                <div class="py-3 flex items-start justify-between">
+                    <label class="font-bold text-sm text-slate-900 w-16 pt-1">備忘錄</label>
+                    <textarea v-model="form.note" rows="3" placeholder="點擊以編輯 (選填)" 
+                        class="flex-grow text-left outline-none text-slate-900 font-medium bg-transparent placeholder:text-gray-300 resize-none"></textarea>
+                </div>
+
+                <div class="h-2 bg-transparent border-none"></div>
+
+                <div @click="showPayerModal = true" class="py-3 flex items-center justify-between border-t border-gray-100 cursor-pointer active:bg-gray-50 transition">
+                    <label class="font-bold text-sm text-slate-900 w-16">付款人</label>
+                    <div class="flex items-center gap-2 flex-grow justify-start pl-4">
+                        <img :src="getPayerAvatar(form.payer)" class="w-6 h-6 rounded-full bg-gray-100 border border-gray-100">
+                        <span class="font-bold text-slate-900 text-sm">{{ form.payer }}</span>
+                    </div>
+                    <div class="text-gray-400 text-sm flex items-center gap-1">
+                        全部 <i class="fas fa-chevron-right text-xs"></i>
+                    </div>
+                </div>
+
+                <div @click="openSplitModal" class="py-3 border-b border-gray-100 cursor-pointer active:bg-gray-50 transition">
+                    <div class="flex items-start justify-between">
+                        <label class="font-bold text-sm text-slate-900 w-16 pt-1">分帳方式</label>
+                        <div class="flex-grow space-y-2">
+                            <div v-for="member in activeMembers" :key="member.name" class="flex justify-between items-center pl-4">
+                                <div class="flex items-center gap-2">
+                                    <img :src="member.avatar" class="w-6 h-6 rounded-full bg-gray-100 border border-gray-100">
+                                    <span class="font-bold text-slate-900 text-sm">{{ member.name }}</span>
+                                </div>
+                                <span class="text-gray-500 text-sm font-medium">{{ member.percentage.toFixed(1) }}%</span>
+                            </div>
+                        </div>
+                        <div class="text-gray-400 text-sm flex items-center gap-1 pl-2 pt-1">
+                            <i class="fas fa-chevron-right text-xs"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div v-else class="flex items-center justify-center flex-1 text-gray-400"><i class="fas fa-circle-notch fa-spin"></i></div>
+
+        <!-- Calendar Modal -->
+        <transition name="fade"><div v-if="showCalendarModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-40" @click="closeCalendarModal"></div></transition>
+        <transition name="slide-up">
+            <div v-if="showCalendarModal" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-[2rem] z-50 shadow-2xl overflow-hidden max-w-md mx-auto pb-safe">
+                <div class="p-4 flex justify-between items-center relative">
+                    <h3 class="text-lg font-bold text-slate-900 pl-2">記錄日期</h3>
+                    <button @click="closeCalendarModal" class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="px-6 pb-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="font-bold text-lg text-slate-800 flex items-center gap-1">{{ currentCalendar.year }}年{{ currentCalendar.month + 1 }}月 <i class="fas fa-chevron-right text-xs text-yellow-500 ml-1"></i></div>
+                        <div class="flex gap-4 text-yellow-500 text-lg"><button @click="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button><button @click="changeMonth(1)"><i class="fas fa-chevron-right"></i></button></div>
+                    </div>
+                    <div class="grid grid-cols-7 text-center mb-2"><span v-for="d in ['週日','週一','週二','週三','週四','週五','週六']" :key="d" class="text-xs text-gray-400 font-medium py-2">{{ d }}</span></div>
+                    <div class="grid grid-cols-7 text-center gap-y-2 mb-6">
+                        <div v-for="n in calendarPadding" :key="'pad-'+n"></div>
+                        <div v-for="day in daysInCurrentMonth" :key="day" class="flex justify-center"><button @click="selectDate(day)" class="w-10 h-10 rounded-full text-sm font-bold flex items-center justify-center transition" :class="getDateClass(day)">{{ day }}</button></div>
+                    </div>
+                    <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+                        <span class="font-bold text-slate-900">時間</span>
+                        <button @click="showTimePicker = !showTimePicker" class="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-full font-mono font-bold text-slate-700 transition flex items-center gap-2">{{ timeForm.hour }}:{{ timeForm.minute }}<i class="fas fa-chevron-up text-xs text-gray-400 transition-transform" :class="{'rotate-180': !showTimePicker}"></i></button>
+                    </div>
+                    <div v-if="showTimePicker" class="flex h-40 overflow-hidden mt-4 bg-gray-50 rounded-xl relative">
+                        <div class="absolute top-1/2 left-0 right-0 h-10 -mt-5 bg-white/50 border-y border-yellow-400 pointer-events-none z-10"></div>
+                        <div class="flex-1 overflow-y-auto text-center hide-scrollbar py-16 scroll-smooth snap-y snap-mandatory"><div v-for="h in 24" :key="h" @click="timeForm.hour = (h-1).toString().padStart(2,'0')" class="h-10 flex items-center justify-center font-bold text-lg snap-center cursor-pointer hover:bg-gray-100" :class="timeForm.hour == (h-1).toString().padStart(2,'0') ? 'text-slate-900' : 'text-gray-300'">{{ (h-1).toString().padStart(2,'0') }}</div></div>
+                        <div class="flex items-center justify-center font-bold text-gray-300 pb-1">:</div>
+                        <div class="flex-1 overflow-y-auto text-center hide-scrollbar py-16 scroll-smooth snap-y snap-mandatory"><div v-for="m in 60" :key="m" @click="timeForm.minute = (m-1).toString().padStart(2,'0')" class="h-10 flex items-center justify-center font-bold text-lg snap-center cursor-pointer hover:bg-gray-100" :class="timeForm.minute == (m-1).toString().padStart(2,'0') ? 'text-slate-900' : 'text-gray-300'">{{ (m-1).toString().padStart(2,'0') }}</div></div>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+        <!-- Payer Modal -->
+        <transition name="fade"><div v-if="showPayerModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-40" @click="showPayerModal = false"></div></transition>
+        <transition name="slide-up">
+            <div v-if="showPayerModal" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-[2rem] z-50 shadow-2xl overflow-hidden max-w-md mx-auto">
+                <div class="p-4 border-b border-gray-100 flex justify-between items-center relative">
+                    <h3 class="text-lg font-bold text-center w-full">付款人</h3>
+                    <button @click="showPayerModal = false" class="absolute right-4 w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full text-gray-500"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="p-2 pb-10">
+                    <div v-for="p in payerOptions" :key="p.name" @click="selectPayer(p)" class="flex items-center gap-3 p-4 hover:bg-gray-50 rounded-xl cursor-pointer transition">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center bg-gray-100 text-xl overflow-hidden border border-gray-200"><img v-if="p.type === 'user'" :src="p.avatar" class="w-full h-full object-cover"><i v-else :class="p.icon" class="text-gray-500"></i></div>
+                        <span class="font-bold text-slate-800">{{ p.name }}</span>
+                        <i v-if="form.payer === p.name" class="fas fa-check text-blue-500 ml-auto"></i>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+        <!-- Category Modal -->
+        <transition name="fade"><div v-if="showCategoryModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-40" @click="showCategoryModal = false"></div></transition>
+        <transition name="slide-up">
+            <div v-if="showCategoryModal" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-[2rem] z-50 shadow-2xl overflow-hidden max-w-md mx-auto">
+                <div class="p-3 border-b border-gray-100 flex justify-between items-center relative">
+                    <h3 class="text-lg font-bold text-center w-full">類別</h3>
+                    <button @click="showCategoryModal = false" class="absolute right-4 w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full text-gray-500"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="p-2 pb-8">
+                    <div v-if="categoryOptions.length === 0" class="text-center py-6 text-gray-400">
+                        <i class="fas fa-circle-notch fa-spin text-2xl mb-2"></i>
+                        <p class="text-sm">載入中...</p>
+                    </div>
+                    <div v-else>
+                        <div v-for="cat in categoryOptions" :key="cat.category_name" @click="selectCategory(cat)" class="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-xl cursor-pointer transition">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center bg-gray-100 text-xl overflow-hidden border border-gray-200">
+                                <i :class="getCategoryIcon(cat.category_icon || cat.category_name)" class="text-gray-500"></i>
+                            </div>
+                            <span class="font-bold text-slate-800">{{ cat.category_name }}</span>
+                            <i v-if="form.category === cat.category_name" class="fas fa-check text-blue-500 ml-auto"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+        <!-- Split Modal -->
+        <transition name="fade"><div v-if="showSplitModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-40" @click="showSplitModal = false"></div></transition>
+        <transition name="slide-up">
+            <div v-if="showSplitModal" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-[2rem] z-50 shadow-2xl overflow-hidden max-w-md mx-auto">
+                <div class="p-4 border-b border-gray-100 flex justify-between items-center relative">
+                    <h3 class="text-lg font-bold text-center w-full">分帳方式</h3>
+                    <button @click="showSplitModal = false" class="absolute right-4 w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full text-gray-500"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="p-4 pb-10">
+                    <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" v-model="splitState.isEqual" @change="recalculateSplit" class="custom-checkbox">
+                            <span class="font-bold text-slate-700">均分</span>
+                        </div>
+                        <span class="font-black text-slate-900 text-lg">$ {{ form.amount || 0 }}</span>
+                    </div>
+                    <div class="space-y-4">
+                        <div v-for="(member, index) in splitState.members" :key="member.name" class="flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <input type="checkbox" v-model="member.checked" @change="recalculateSplit" class="custom-checkbox">
+                                <div class="flex items-center gap-2">
+                                    <img :src="member.avatar" class="w-6 h-6 rounded-full bg-gray-100 border border-gray-200">
+                                    <span class="font-bold text-slate-900">{{ member.name }}</span>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-bold text-sm">{{ member.percentage.toFixed(1) }}%</div>
+                                <div class="text-xs text-gray-400 font-mono">= ${{ Math.round(form.amount * (member.percentage/100)) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+        <!-- Calculator Modal -->
+        <transition name="fade"><div v-if="showCalculator" class="fixed inset-0 bg-transparent z-40" @click="closeCalculator"></div></transition>
+        <transition name="slide-up">
+            <div v-if="showCalculator" class="calc-container fixed bottom-0 left-0 right-0 bg-white rounded-t-[2rem] z-50 shadow-2xl overflow-hidden max-w-md mx-auto pb-safe border-2 border-gray-200" style="height: 65vh; max-height: 65vh;">
+                <div class="h-full flex flex-col overflow-y-auto">
+                    <!-- 顯示區域 -->
+                    <div class="calc-display-area p-4 bg-white rounded-t-[2rem] flex items-end justify-between shrink-0">
+                        <div class="flex-1 flex flex-col min-w-0">
+                            <!-- 運算式顯示（小字，左對齊） -->
+                            <div v-if="calcExpression" class="calc-expression-text text-sm text-gray-500 font-mono mb-1 overflow-x-auto w-full text-left whitespace-nowrap">{{ calcExpression }}</div>
+                            <!-- 當前輸入/結果顯示（大字，右對齊） -->
+                            <div class="calc-display-text text-5xl font-light font-mono overflow-x-auto w-full text-right" :class="calcDisplay === '0' ? 'text-gray-400' : 'text-slate-900'">{{ calcDisplay }}</div>
+                        </div>
+                        <button @click="calcDelete" class="calc-delete-btn w-12 h-12 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-full text-gray-700 transition active:scale-95 shrink-0 ml-2">
+                            <i class="fas fa-arrow-left text-sm"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- 按鈕區域 -->
+                    <div class="flex-1 grid grid-cols-5 gap-3 p-4 min-h-0">
+                        <!-- 第一行：7 8 9 + AC -->
+                        <button @click="calcInputNumber('7')" class="calc-number-btn bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-slate-900 font-light text-2xl py-4 rounded-full transition active:scale-95 shadow-md">7</button>
+                        <button @click="calcInputNumber('8')" class="calc-number-btn bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-slate-900 font-light text-2xl py-4 rounded-full transition active:scale-95 shadow-md">8</button>
+                        <button @click="calcInputNumber('9')" class="calc-number-btn bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-slate-900 font-light text-2xl py-4 rounded-full transition active:scale-95 shadow-md">9</button>
+                        <button @click="calcOperatorClick('+')" class="calc-operator-btn bg-orange-400 hover:bg-orange-500 active:bg-orange-600 text-white font-light text-2xl py-4 rounded-full transition active:scale-95 shadow-md">+</button>
+                        <button @click="calcClear" class="calc-ac-btn bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-slate-900 font-light text-lg py-4 rounded-full transition active:scale-95 shadow-md">AC</button>
+                        
+                        <!-- 第二行：4 5 6 - = -->
+                        <button @click="calcInputNumber('4')" class="calc-number-btn bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-slate-900 font-light text-2xl py-4 rounded-full transition active:scale-95 shadow-md">4</button>
+                        <button @click="calcInputNumber('5')" class="calc-number-btn bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-slate-900 font-light text-2xl py-4 rounded-full transition active:scale-95 shadow-md">5</button>
+                        <button @click="calcInputNumber('6')" class="calc-number-btn bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-slate-900 font-light text-2xl py-4 rounded-full transition active:scale-95 shadow-md">6</button>
+                        <button @click="calcOperatorClick('-')" class="calc-operator-btn bg-orange-400 hover:bg-orange-500 active:bg-orange-600 text-white font-light text-2xl py-4 rounded-full transition active:scale-95 shadow-md">−</button>
+                        <button @click="calcEquals" class="calc-operator-btn row-span-3 bg-orange-400 hover:bg-orange-500 active:bg-orange-600 text-white font-light text-2xl rounded-full transition active:scale-95 shadow-md flex items-center justify-center">
+                            ↵
+                        </button>
+                        
+                        <!-- 第三行：1 2 3 × -->
+                        <button @click="calcInputNumber('1')" class="calc-number-btn bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-slate-900 font-light text-2xl py-4 rounded-full transition active:scale-95 shadow-md">1</button>
+                        <button @click="calcInputNumber('2')" class="calc-number-btn bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-slate-900 font-light text-2xl py-4 rounded-full transition active:scale-95 shadow-md">2</button>
+                        <button @click="calcInputNumber('3')" class="calc-number-btn bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-slate-900 font-light text-2xl py-4 rounded-full transition active:scale-95 shadow-md">3</button>
+                        <button @click="calcOperatorClick('*')" class="calc-operator-btn bg-orange-400 hover:bg-orange-500 active:bg-orange-600 text-white font-light text-2xl py-4 rounded-full transition active:scale-95 shadow-md">×</button>
+                        
+                        <!-- 第四行：0 . ÷ -->
+                        <button @click="calcInputNumber('0')" class="calc-number-btn col-span-2 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-slate-900 font-light text-2xl py-4 rounded-full transition active:scale-95 shadow-md">0</button>
+                        <button @click="calcInputNumber('.')" class="calc-number-btn bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-slate-900 font-light text-2xl py-4 rounded-full transition active:scale-95 shadow-md">.</button>
+                        <button @click="calcOperatorClick('/')" class="calc-operator-btn bg-orange-400 hover:bg-orange-500 active:bg-orange-600 text-white font-light text-2xl py-4 rounded-full transition active:scale-95 shadow-md">÷</button>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+    </div>
+
+    <script>
+        const { createApp, ref, reactive, computed, onMounted } = Vue
+        const { createClient } = supabase
+        const SUPABASE_URL = 'https://wbhertwvqtfdwderscmj.supabase.co'
+        const SUPABASE_KEY = 'sb_publishable_8xMP9OKEx90C7q1YSz0XBw_tUma_cPF'
+        const _supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
+
+        createApp({
+            setup() {
+                const isReady = ref(false)
+                const submitting = ref(false)
+                const isEditMode = ref(false)
+                const bookId = ref(null)
+                const ledgerId = ref(null)
+                const currentBook = ref(null)
+                const members = ref([])
+                
+                // Modals
+                const showPayerModal = ref(false)
+                const showSplitModal = ref(false)
+                const showCalendarModal = ref(false)
+                const showTimePicker = ref(false)
+                const showCategoryModal = ref(false)
+                const showCalculator = ref(false)
+
+                // Calculator Logic - 使用標準計算器邏輯
+                const calcDisplay = ref('0')
+                const calcExpression = ref('')
+                // 使用表達式數組存儲運算序列：[value1, op1, value2, op2, ...]
+                const calcExpressionArray = ref([])
+                const calcOperator = ref(null)
+                const calcWaitingForOperand = ref(false)
+
+                // Calendar Logic
+                const now = new Date()
+                const initialDateStr = now.toISOString()
+                const currentCalendar = reactive({ year: now.getFullYear(), month: now.getMonth() })
+                const timeForm = reactive({ hour: now.getHours().toString().padStart(2,'0'), minute: now.getMinutes().toString().padStart(2,'0') })
+                const daysInCurrentMonth = computed(() => new Date(currentCalendar.year, currentCalendar.month + 1, 0).getDate())
+                const calendarPadding = computed(() => new Date(currentCalendar.year, currentCalendar.month, 1).getDay())
+
+                // Form Data
+                const form = reactive({
+                    amount: '', 
+                    item: '', 
+                    category: '', 
+                    payer: '', 
+                    currency: 'TWD',
+                    note: '',
+                    fullDate: initialDateStr
+                })
+
+                // Dynamic Data
+                const dbMembers = ref([])
+                const payerOptions = ref([])
+                const categoryOptions = ref([])
+                const splitState = reactive({ isEqual: true, members: [] })
+                const activeMembers = computed(() => splitState.members.filter(m => m.checked))
+
+                const getSelectedCategoryIcon = computed(() => {
+                    if (!form.category) return 'fas fa-circle'
+                    const selectedCat = categoryOptions.value.find(cat => cat.category_name === form.category)
+                    if (selectedCat) {
+                        return getCategoryIcon(selectedCat.category_icon || selectedCat.category_name)
+                    }
+                    return getCategoryIcon(form.category)
+                })
+
+                const formattedDateDisplay = computed(() => {
+                    if(!form.fullDate) return ''
+                    const d = new Date(form.fullDate)
+                    const YYYY = d.getFullYear()
+                    const MM = (d.getMonth() + 1).toString().padStart(2, '0')
+                    const DD = d.getDate().toString().padStart(2, '0')
+                    const HH = d.getHours().toString().padStart(2, '0')
+                    const mm = d.getMinutes().toString().padStart(2, '0')
+                    return `${YYYY}/${MM}/${DD} ${HH}:${mm}`
+                })
+
+                const getPayerAvatar = (name) => {
+                    const payer = payerOptions.value.find(opt => opt.name === name)
+                    return payer?.avatar || 'https://api.dicebear.com/7.x/shapes/svg?seed=Unknown'
+                }
+
+                const loadMembers = async (bookId) => {
+                    const { data, error } = await _supabase.from('members').select('*').eq('book_id', bookId)
+                    if(error) {
+                        console.error('載入成員錯誤:', error)
+                        return
+                    }
+                    if(data && data.length > 0) {
+                        dbMembers.value = data.map(m => ({
+                            name: m.member_name,
+                            avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${m.avatar_seed || m.member_name}&backgroundColor=e5e7eb`,
+                            type: 'user'
+                        }))
+                        payerOptions.value = [
+                            ...dbMembers.value, 
+                            { name: '共用帳戶', type: 'system', icon: 'fas fa-wallet', avatar: '' },
+                            { name: '多位付款人', type: 'system', icon: 'fas fa-users', avatar: '' }
+                        ]
+                        splitState.members = dbMembers.value.map(m => ({ ...m, checked: true, percentage: 100/dbMembers.value.length }))
+                        if (!form.payer && dbMembers.value.length > 0) form.payer = dbMembers.value[0].name
+                    }
+                }
+
+                const loadCategoryOptions = async (bookId) => {
+                    try {
+                        if (!bookId) {
+                            console.error('❌ bookId 為空，無法載入類別選項')
+                            categoryOptions.value = [
+                                { category_name: '食物' },
+                                { category_name: '交通' },
+                                { category_name: '購物' },
+                                { category_name: '住宿' }
+                            ]
+                            return
+                        }
+
+                        // 查詢 options 表
+                        const { data, error } = await _supabase.from('options')
+                            .select('*')
+                            .eq('book_id', bookId)
+                            .eq('category_type', 'category')
+                            .order('category_sort')
+                        
+                        if (error) {
+                            console.error('❌ 載入類別選項錯誤:', error)
+                            alert('載入類別選項失敗: ' + error.message)
+                            categoryOptions.value = [
+                                { category_name: '食物' },
+                                { category_name: '交通' },
+                                { category_name: '購物' },
+                                { category_name: '住宿' }
+                            ]
+                        } else if (data && data.length > 0) {
+                            // 成功載入
+                            categoryOptions.value = data
+                        } else {
+                            // 如果沒有資料，自動從 common 表複製
+                            console.log('🔄 自動從 common 表複製類別選項...')
+                            
+                            const { data: commonOptions, error: commonError } = await _supabase
+                                .from('common')
+                                .select('*')
+                                .eq('category_type', 'category')
+                            
+                            if (commonError) {
+                                console.error('❌ 讀取 common 表失敗:', commonError)
+                                categoryOptions.value = [
+                                    { category_name: '食物' },
+                                    { category_name: '交通' },
+                                    { category_name: '購物' },
+                                    { category_name: '住宿' }
+                                ]
+                            } else if (commonOptions && commonOptions.length > 0) {
+                                // 插入到 options 表
+                                const optionsToInsert = commonOptions.map((opt, index) => ({
+                                    book_id: bookId,
+                                    category_type: opt.category_type,
+                                    category_name: opt.category_name,
+                                    category_sort: index + 1
+                                }))
+                                
+                                const { error: insertError } = await _supabase
+                                    .from('options')
+                                    .insert(optionsToInsert)
+                                
+                                if (insertError) {
+                                    console.error('❌ 插入選項到 options 表失敗:', insertError)
+                                    // 如果插入失敗，至少使用 common 表的資料顯示
+                                    categoryOptions.value = commonOptions.map(opt => ({
+                                        category_name: opt.category_name
+                                    }))
+                                } else {
+                                    // 重新查詢 options 表
+                                    const { data: newData } = await _supabase.from('options')
+                                        .select('*')
+                                        .eq('book_id', bookId)
+                                        .eq('category_type', 'category')
+                                        .order('category_sort')
+                                    
+                                    if (newData && newData.length > 0) {
+                                        categoryOptions.value = newData
+                                    } else {
+                                        // 如果還是沒有，使用 common 表的資料
+                                        categoryOptions.value = commonOptions.map(opt => ({
+                                            category_name: opt.category_name
+                                        }))
+                                    }
+                                }
+                            } else {
+                                // 如果 common 表也沒有，使用預設類別
+                                categoryOptions.value = [
+                                    { category_name: '食物' },
+                                    { category_name: '交通' },
+                                    { category_name: '購物' },
+                                    { category_name: '住宿' }
+                                ]
+                            }
+                        }
+                    } catch(err) {
+                        console.error('❌ 載入類別選項時發生異常:', err)
+                        alert('載入類別選項時發生錯誤，請檢查控制台')
+                        categoryOptions.value = [
+                            { category_name: '食物' },
+                            { category_name: '交通' },
+                            { category_name: '購物' },
+                            { category_name: '住宿' }
+                        ]
+                    }
+                }
+
+                const getCategoryIcon = (iconName) => {
+                    if (iconName && iconName.startsWith('fas ')) {
+                        return iconName
+                    }
+                    // 舊的類別名稱對應圖標
+                    const icons = {
+                        '食物': 'fas fa-utensils',
+                        '飲料': 'fas fa-glass-water',
+                        '交通': 'fas fa-train',
+                        '票券': 'fas fa-ticket-alt',
+                        '住宿': 'fas fa-hotel',
+                        '購物': 'fas fa-shopping-bag',
+                        '其他': 'fas fa-box'
+                    }
+                    return icons[iconName] || 'fas fa-circle'
+                }
+
+                const selectCategory = (cat) => {
+                    form.category = cat.category_name
+                    showCategoryModal.value = false
+                }
+
+                onMounted(async () => {
+                    try {
+                        // 1. 取得 ID
+                        bookId.value = localStorage.getItem('active_book_id')
+                        if (!bookId.value) { window.location.href = 'index.html'; return }
+
+                        // 2. 載入帳本資訊
+                        const { data: book, error: bookError } = await _supabase.from('books').select('*').eq('book_id', bookId.value).single()
+                        if(bookError) {
+                            console.error('載入帳本錯誤:', bookError)
+                            alert('載入帳本失敗: ' + bookError.message)
+                            return
+                        }
+                        currentBook.value = book
+
+                        // 3. 檢查是否為編輯模式
+                        const editingLedgerId = localStorage.getItem('editing_ledger_id')
+                        if (editingLedgerId) {
+                            isEditMode.value = true
+                            ledgerId.value = editingLedgerId
+                            localStorage.removeItem('editing_ledger_id')
+                            
+                            // 載入要編輯的記錄
+                            const { data: record, error: recordError } = await _supabase.from('ledger')
+                                .select('*')
+                                .eq('ledger_id', ledgerId.value)
+                                .single()
+                            
+                            if(recordError) {
+                                console.error('載入記錄錯誤:', recordError)
+                                alert('載入記錄失敗: ' + recordError.message)
+                            } else if (record) {
+                                form.amount = record.pay_amount
+                                form.item = record.pay_item
+                                form.category = record.pay_category
+                                form.payer = record.pay_payer
+                                form.currency = record.pay_currency
+                                form.note = record.pay_remark || ''
+                                // shop_date 是 timestamp with time zone，轉換為 ISO 格式
+                                if (record.shop_date) {
+                                    form.fullDate = new Date(record.shop_date).toISOString()
+                                } else {
+                                    form.fullDate = new Date().toISOString()
+                                }
+                            }
+                        } else {
+                            if(book) {
+                                form.currency = book.base_currency
+                            }
+                        }
+
+                        // 4. 載入成員和類別選項
+                        await loadMembers(bookId.value)
+                        await loadCategoryOptions(bookId.value)
+                        members.value = dbMembers.value
+
+                        isReady.value = true
+                    } catch(err) {
+                        console.error('初始化錯誤:', err)
+                        alert('載入資料時發生錯誤，請重新整理頁面')
+                    }
+                })
+
+                // Calendar Modal Methods
+                const openCalendarModal = () => {
+                    const d = new Date(form.fullDate)
+                    currentCalendar.year = d.getFullYear()
+                    currentCalendar.month = d.getMonth()
+                    timeForm.hour = d.getHours().toString().padStart(2,'0')
+                    timeForm.minute = d.getMinutes().toString().padStart(2,'0')
+                    showCalendarModal.value = true
+                }
+                const closeCalendarModal = () => {
+                    const current = new Date(form.fullDate)
+                    current.setFullYear(currentCalendar.year)
+                    current.setMonth(currentCalendar.month)
+                    current.setHours(parseInt(timeForm.hour))
+                    current.setMinutes(parseInt(timeForm.minute))
+                    form.fullDate = current.toISOString()
+                    showCalendarModal.value = false
+                    showTimePicker.value = false
+                }
+                const changeMonth = (delta) => {
+                    let newMonth = currentCalendar.month + delta
+                    if(newMonth > 11) { currentCalendar.month = 0; currentCalendar.year++ } 
+                    else if (newMonth < 0) { currentCalendar.month = 11; currentCalendar.year-- } 
+                    else { currentCalendar.month = newMonth }
+                }
+                const selectDate = (day) => {
+                    const newDate = new Date(form.fullDate)
+                    newDate.setFullYear(currentCalendar.year)
+                    newDate.setMonth(currentCalendar.month)
+                    newDate.setDate(day)
+                    newDate.setHours(parseInt(timeForm.hour))
+                    newDate.setMinutes(parseInt(timeForm.minute))
+                    form.fullDate = newDate.toISOString()
+                }
+                const getDateClass = (day) => {
+                    const target = new Date(form.fullDate)
+                    return (target.getDate() === day && target.getMonth() === currentCalendar.month && target.getFullYear() === currentCalendar.year) 
+                        ? 'bg-yellow-400 text-white shadow-md' 
+                        : 'text-slate-700 hover:bg-gray-100'
+                }
+
+                // Other Modals
+                const selectPayer = (p) => { 
+                    form.payer = p.name
+                    showPayerModal.value = false 
+                }
+                const openSplitModal = () => { 
+                    showSplitModal.value = true
+                    recalculateSplit() 
+                }
+                const recalculateSplit = () => {
+                    if (splitState.isEqual) {
+                        const checkedCount = splitState.members.filter(m => m.checked).length
+                        if (checkedCount > 0) {
+                            const avg = 100 / checkedCount
+                            splitState.members.forEach(m => { m.percentage = m.checked ? avg : 0 })
+                        }
+                    }
+                }
+
+                // Calculator Methods
+                // 獲取運算符優先級
+                const getOpPriority = (op) => {
+                    if (op === '*' || op === '/') return 2
+                    if (op === '+' || op === '-') return 1
+                    return 0
+                }
+
+                // 格式化計算式，考慮優先級和括號
+                const formatExpression = () => {
+                    if (calcExpressionArray.value.length === 0) {
+                        // 如果沒有表達式，但有運算符
+                        if (calcOperator.value) {
+                            const opSymbol = calcOperator.value === '*' ? '×' : calcOperator.value === '/' ? '÷' : calcOperator.value
+                            // 如果正在等待輸入，只顯示數字和運算符（不重複顯示數字）
+                            if (calcWaitingForOperand.value) {
+                                return `${calcDisplay.value} ${opSymbol}`
+                            } else {
+                                // 如果不是等待狀態，顯示當前數字和運算符
+                                return `${calcDisplay.value} ${opSymbol}`
+                            }
+                        }
+                        return ''
+                    }
+                    
+                    // calcExpressionArray 的結構：[firstValue, value2, op1, value3, op2, ...]
+                    // 因為 calcOperatorClick 中：calcExpressionArray.push(inputValue, calcOperator.value)
+                    // 所以結構實際上是：[firstValue, value2, op1, value3, op2, ...]
+                    
+                    // 構建完整的運算序列
+                    const parts = []
+                    
+                    // 第一個值
+                    if (calcExpressionArray.value.length > 0) {
+                        const firstValue = calcExpressionArray.value[0]
+                        if (typeof firstValue === 'number') {
+                            parts.push({ value: firstValue, op: null })
+                        }
+                    }
+                    
+                    // 解析後續的值和運算符對：[value, op, value, op, ...]
+                    for (let i = 1; i < calcExpressionArray.value.length; i += 2) {
+                        const value = calcExpressionArray.value[i]
+                        const op = calcExpressionArray.value[i + 1]
+                        if (value !== undefined && op) {
+                            parts.push({ value, op })
+                        }
+                    }
+                    
+                    // 如果有當前運算符，只有在不是等待輸入狀態時才添加當前顯示的數字
+                    // 如果 calcWaitingForOperand 為 true，表示剛按下運算符，不應該顯示當前數字
+                    if (calcOperator.value && !calcWaitingForOperand.value) {
+                        const currentValue = parseFloat(calcDisplay.value)
+                        parts.push({ value: currentValue, op: calcOperator.value })
+                    } else if (calcOperator.value && calcWaitingForOperand.value) {
+                        // 如果正在等待輸入，只添加運算符（不帶值）
+                        parts.push({ value: null, op: calcOperator.value })
+                    }
+                    
+                    // 從第一個值開始構建表達式
+                    if (parts.length === 0) return ''
+                    
+                    let expression = String(parts[0].value)
+                    
+                    // 構建表達式
+                    for (let i = 1; i < parts.length; i++) {
+                        const currentPart = parts[i]
+                        
+                        if (!currentPart.op) continue
+                        
+                        const opSymbol = currentPart.op === '*' ? '×' : currentPart.op === '/' ? '÷' : currentPart.op
+                        
+                        // 如果值為 null（等待輸入狀態），只顯示運算符
+                        if (currentPart.value === null) {
+                            expression = `${expression} ${opSymbol}`
+                            continue
+                        }
+                        
+                        if (currentPart.value === undefined) continue
+                        
+                        // 獲取前一個運算符（如果存在）
+                        const prevPart = i > 0 ? parts[i - 1] : null
+                        const prevOp = prevPart ? prevPart.op : null
+                        const prevPriority = prevOp ? getOpPriority(prevOp) : 0
+                        const currentPriority = getOpPriority(currentPart.op)
+                        
+                        // 如果前一個運算符是 + 或 -，當前是 * 或 /，需要括號
+                        if (prevOp && prevPriority < currentPriority) {
+                            expression = `(${expression}) ${opSymbol} ${currentPart.value}`
+                        } else {
+                            expression = `${expression} ${opSymbol} ${currentPart.value}`
+                        }
+                    }
+                    
+                    return expression
+                }
+
+                const calcInputNumber = (num) => {
+                    if (calcWaitingForOperand.value) {
+                        calcDisplay.value = num
+                        calcWaitingForOperand.value = false
+                    } else {
+                        if (calcDisplay.value === '0') {
+                            calcDisplay.value = num
+                        } else {
+                            if (num === '.' && calcDisplay.value.includes('.')) {
+                                return
+                            }
+                            calcDisplay.value += num
+                        }
+                    }
+                    // 更新運算式顯示
+                    calcExpression.value = formatExpression()
+                    
+                    // 如果沒有運算符和表達式，直接將當前輸入帶入金額欄位
+                    if (!calcOperator.value && calcExpressionArray.value.length === 0) {
+                        const amount = parseFloat(calcDisplay.value)
+                        form.amount = isNaN(amount) ? '' : amount
+                    }
+                }
+
+                const calcOperatorClick = (op) => {
+                    const inputValue = parseFloat(calcDisplay.value)
+                    const newOpPriority = getOpPriority(op)
+                    
+                    // 如果有之前的運算符
+                    if (calcOperator.value) {
+                        const prevOpPriority = getOpPriority(calcOperator.value)
+                        
+                        // 將當前數字和之前的運算符加入表達式數組
+                        calcExpressionArray.value.push(inputValue, calcOperator.value)
+                        
+                        // 如果從高優先級切換到低優先級（從 * / 切換到 + -），需要先計算高優先級部分
+                        if (prevOpPriority > newOpPriority) {
+                            // 轉換為標準格式計算
+                            const standardFormat = []
+                            if (calcExpressionArray.value.length > 0) {
+                                standardFormat.push(calcExpressionArray.value[0])
+                                for (let i = 1; i < calcExpressionArray.value.length; i += 2) {
+                                    const value = calcExpressionArray.value[i]
+                                    const op = calcExpressionArray.value[i + 1]
+                                    if (value !== undefined && op) {
+                                        standardFormat.push(op, value)
+                                    }
+                                }
+                            }
+                            // 計算到目前為止的結果
+                            const result = evaluateExpression(standardFormat)
+                            // 將結果作為新的起始值
+                            calcExpressionArray.value = [result]
+                            calcDisplay.value = String(result)
+                        }
+                        // 如果優先級相同或更高，不計算，保持累積顯示
+                    } else {
+                        // 第一次輸入運算符，將當前數字作為第一個值存儲
+                        if (calcExpressionArray.value.length === 0) {
+                            calcExpressionArray.value.push(inputValue)
+                        }
+                    }
+                    
+                    // 設置新的運算符
+                    calcOperator.value = op
+                    calcWaitingForOperand.value = true
+                    
+                    // 更新顯示
+                    calcExpression.value = formatExpression()
+                }
+
+                // 計算整個表達式，考慮運算符優先級
+                // 輸入格式：[value1, op1, value2, op2, value3, ...]
+                // 使用標準的運算符優先級計算：先 * /，後 + -
+                const evaluateExpression = (expressionArray) => {
+                    if (expressionArray.length === 0) return 0
+                    if (expressionArray.length === 1) return expressionArray[0]
+                    
+                    // 複製數組以避免修改原數組
+                    const tokens = [...expressionArray]
+                    
+                    // 先處理所有 * 和 / 運算（從左到右）
+                    let i = 1
+                    while (i < tokens.length) {
+                        if (tokens[i] === '*' || tokens[i] === '/') {
+                            const left = tokens[i - 1]
+                            const right = tokens[i + 1]
+                            let result
+                            if (tokens[i] === '*') {
+                                result = left * right
+                            } else {
+                                if (right === 0) return NaN // 除零錯誤
+                                result = left / right
+                            }
+                            // 替換三個元素為一個結果
+                            tokens.splice(i - 1, 3, result)
+                            // 重置 i 為 1，因為數組結構改變了
+                            i = 1
+                        } else {
+                            i += 2 // 跳過運算符和下一個數字
+                        }
+                    }
+                    
+                    // 處理所有 + 和 - 運算（從左到右）
+                    i = 1
+                    while (i < tokens.length) {
+                        if (tokens[i] === '+' || tokens[i] === '-') {
+                            const left = tokens[i - 1]
+                            const right = tokens[i + 1]
+                            let result
+                            if (tokens[i] === '+') {
+                                result = left + right
+                            } else {
+                                result = left - right
+                            }
+                            // 替換三個元素為一個結果
+                            tokens.splice(i - 1, 3, result)
+                            // 重置 i 為 1，因為數組結構改變了
+                            i = 1
+                        } else {
+                            i += 2
+                        }
+                    }
+                    
+                    return tokens[0]
+                }
+                
+                // 計算當前表達式（包含當前輸入）
+                const performCalculation = () => {
+                    // 構建完整的表達式數組
+                    // calcExpressionArray 結構：[firstValue, value2, op1, value3, op2, ...]
+                    const fullExpression = [...calcExpressionArray.value]
+                    
+                    // 如果有當前運算符，添加當前顯示的數字
+                    if (calcOperator.value) {
+                        const inputValue = parseFloat(calcDisplay.value)
+                        fullExpression.push(inputValue, calcOperator.value)
+                    }
+                    
+                    if (fullExpression.length === 0) {
+                        return parseFloat(calcDisplay.value)
+                    }
+                    
+                    // 轉換為標準格式：[value1, op1, value2, op2, ...]
+                    const standardFormat = []
+                    if (fullExpression.length > 0) {
+                        standardFormat.push(fullExpression[0]) // 第一個值
+                        // 後續是 [value, op, value, op, ...]
+                        for (let i = 1; i < fullExpression.length; i += 2) {
+                            const value = fullExpression[i]
+                            const op = fullExpression[i + 1]
+                            if (value !== undefined && op) {
+                                standardFormat.push(op, value)
+                            }
+                        }
+                    }
+                    
+                    return evaluateExpression(standardFormat)
+                }
+
+                const calcEquals = () => {
+                    if (calcExpressionArray.value.length === 0 && !calcOperator.value) return
+                    
+                    // 構建完整的表達式用於顯示
+                    const fullExpression = [...calcExpressionArray.value]
+                    if (calcOperator.value) {
+                        const inputValue = parseFloat(calcDisplay.value)
+                        fullExpression.push(inputValue, calcOperator.value)
+                    }
+                    
+                    // 計算結果
+                    const result = performCalculation()
+                    
+                    // 格式化結果，避免過長的小數
+                    if (isNaN(result) || !isFinite(result)) {
+                        calcDisplay.value = '0'
+                        calcExpression.value = ''
+                        calcExpressionArray.value = []
+                        form.amount = ''
+                    } else {
+                        const formatted = result % 1 === 0 ? String(result) : parseFloat(result.toFixed(10)).toString()
+                        // 顯示完整計算過程，在等號前（移除最後的運算符）
+                        let expr = formatExpression()
+                        // 移除末尾的運算符
+                        expr = expr.replace(/\s+\+\s*$|\s+\-\s*$|\s+×\s*$|\s+÷\s*$/, '')
+                        calcExpression.value = expr + ' ='
+                        calcDisplay.value = formatted
+                        // 自動將結果填入金額欄位
+                        form.amount = formatted
+                    }
+                    
+                    // 重置狀態
+                    calcExpressionArray.value = []
+                    calcOperator.value = null
+                    calcWaitingForOperand.value = true
+                }
+
+                const calcClear = () => {
+                    calcDisplay.value = '0'
+                    calcExpression.value = ''
+                    calcExpressionArray.value = []
+                    calcOperator.value = null
+                    calcWaitingForOperand.value = false
+                    // 清空金額欄位
+                    form.amount = ''
+                }
+
+                const calcDelete = () => {
+                    if (calcDisplay.value.length > 1) {
+                        calcDisplay.value = calcDisplay.value.slice(0, -1)
+                        // 更新運算式顯示
+                        calcExpression.value = formatExpression()
+                    } else {
+                        calcDisplay.value = '0'
+                        // 如果刪除到 0，更新運算式
+                        calcExpression.value = formatExpression()
+                    }
+                    
+                    // 如果沒有運算符和表達式，更新金額欄位
+                    if (!calcOperator.value && calcExpressionArray.value.length === 0) {
+                        const amount = parseFloat(calcDisplay.value)
+                        form.amount = isNaN(amount) || amount === 0 ? '' : amount
+                    }
+                }
+
+                const calcConfirm = () => {
+                    if (calcOperator.value) {
+                        calcEquals()
+                    }
+                    // 確保金額是數字格式
+                    const amount = parseFloat(calcDisplay.value)
+                    form.amount = isNaN(amount) ? '' : amount
+                    closeCalculator()
+                }
+
+                const closeCalculator = () => {
+                    // 如果沒有運算符和表達式，將當前顯示的數字帶入金額欄位
+                    if (!calcOperator.value && calcExpressionArray.value.length === 0) {
+                        const amount = parseFloat(calcDisplay.value)
+                        form.amount = isNaN(amount) ? '' : amount
+                    }
+                    
+                    showCalculator.value = false
+                    // 重置計算機狀態
+                    calcDisplay.value = form.amount || '0'
+                    calcExpression.value = ''
+                    calcExpressionArray.value = []
+                    calcOperator.value = null
+                    calcWaitingForOperand.value = false
+                }
+
+                const openCalculator = () => {
+                    calcDisplay.value = form.amount || '0'
+                    calcExpression.value = ''
+                    calcExpressionArray.value = []
+                    calcOperator.value = null
+                    calcWaitingForOperand.value = false
+                    showCalculator.value = true
+                }
+
+                const submitForm = async () => {
+                    if(!form.amount || !form.item) return
+                    submitting.value = true
+
+                    // shop_date 是 timestamp with time zone，使用 ISO 格式
+                    const finalDate = new Date(form.fullDate).toISOString()
+
+                    if (isEditMode.value) {
+                        // 更新記錄
+                        const { error } = await _supabase.from('ledger')
+                            .update({
+                                pay_item: form.item,
+                                pay_amount: form.amount,
+                                pay_currency: form.currency,
+                                pay_payer: form.payer,
+                                pay_category: form.category || '一般',
+                                pay_remark: form.note || null,
+                                shop_date: finalDate
+                            })
+                            .eq('ledger_id', ledgerId.value)
+                        
+                        submitting.value = false
+                        
+                        if(!error) {
+                            window.location.href = 'records.html'
+                        } else {
+                            alert('更新失敗: ' + error.message)
+                        }
+                    } else {
+                        // 新增記錄
+                        const { error } = await _supabase.from('ledger').insert([{
+                            book_id: bookId.value,
+                            pay_item: form.item,
+                            pay_amount: form.amount,
+                            pay_currency: form.currency,
+                            pay_payer: form.payer,
+                            pay_category: form.category || '一般',
+                            pay_remark: form.note || null,
+                            shop_date: finalDate
+                        }])
+
+                        submitting.value = false
+                        
+                        if(!error) {
+                            window.location.href = 'records.html'
+                        } else {
+                            alert('Error: ' + error.message)
+                        }
+                    }
+                }
+
+                return { 
+                    isReady, form, members, submitting, isEditMode, currentBook,
+                    showPayerModal, showSplitModal, showCalendarModal, showTimePicker, showCategoryModal, showCalculator,
+                    currentCalendar, daysInCurrentMonth, calendarPadding, timeForm,
+                    openCalendarModal, closeCalendarModal, changeMonth, selectDate, getDateClass,
+                    payerOptions, categoryOptions, splitState, activeMembers, getPayerAvatar, selectPayer, 
+                    openSplitModal, recalculateSplit, selectCategory, getCategoryIcon, getSelectedCategoryIcon,
+                    calcDisplay, calcExpression, calcInputNumber, calcOperatorClick, calcEquals, calcClear, calcDelete, calcConfirm, closeCalculator, openCalculator,
+                    formattedDateDisplay, submitForm
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>

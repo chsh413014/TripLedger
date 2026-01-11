@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>類別設定</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* Modal Transitions */
+        .fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
+        .fade-enter-from, .fade-leave-to { opacity: 0; }
+        
+        .slide-up-enter-active, .slide-up-leave-active { transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .slide-up-enter-from, .slide-up-leave-to { transform: translateY(100%); }
+        
+        /* Dark Mode Support */
+        @media (prefers-color-scheme: dark) {
+            body { background-color: #111827 !important; color: #f9fafb !important; }
+            #app { background-color: #1f2937 !important; }
+            header { background-color: #1f2937 !important; }
+            .bg-gray-50 { background-color: #111827 !important; }
+            .bg-white { background-color: #374151 !important; }
+            .text-slate-900 { color: #f9fafb !important; }
+            .text-slate-800 { color: #e5e7eb !important; }
+            .text-slate-700 { color: #d1d5db !important; }
+            .text-gray-500 { color: #9ca3af !important; }
+            .text-gray-400 { color: #6b7280 !important; }
+            .text-gray-300 { color: #4b5563 !important; }
+            .border-gray-100 { border-color: #374151 !important; }
+            .border-gray-200 { border-color: #4b5563 !important; }
+            .bg-gray-100 { background-color: #374151 !important; }
+            .hover\:bg-gray-100:hover { background-color: #4b5563 !important; }
+            .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3) !important; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-slate-800 h-screen overflow-hidden">
+    <div id="app" class="max-w-md mx-auto h-full bg-white relative flex flex-col shadow-2xl">
+        
+        <header class="px-4 py-3 flex items-center relative bg-white z-10 shrink-0 border-b border-gray-100">
+            <a href="settings.html" class="w-10 h-10 flex items-center justify-center bg-white rounded-full shadow-sm text-slate-700 hover:bg-gray-100 transition z-20">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h1 class="text-lg font-black text-slate-900 absolute inset-0 flex items-center justify-center pointer-events-none">
+                類別
+            </h1>
+        </header>
+
+        <main class="flex-1 overflow-y-auto px-4 py-2 hide-scrollbar">
+            <div v-if="loading" class="text-center py-10 text-gray-400">
+                <i class="fas fa-circle-notch fa-spin text-2xl"></i>
+            </div>
+            
+            <div v-else class="space-y-1">
+                <!-- 類別列表 -->
+                <div v-for="(cat, index) in categoryList" :key="cat.option_id || cat.category_name" 
+                     class="bg-white px-4 py-3 rounded-xl flex items-center justify-between cursor-pointer active:bg-gray-50 transition">
+                    <div @click="editCategory(cat)" class="flex items-center gap-3 flex-1">
+                        <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-xl">
+                            <i :class="getCategoryIcon(cat.category_icon || cat.category_name)" class="text-gray-600"></i>
+                        </div>
+                        <span class="font-bold text-slate-900">{{ cat.category_name }}</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <button @click.stop="moveCategory(index, -1)" 
+                                :disabled="index === 0"
+                                class="w-8 h-8 flex items-center justify-center rounded-lg transition"
+                                :class="index === 0 ? 'text-gray-200' : 'text-teal-500 hover:bg-teal-50'">
+                            <i class="fas fa-chevron-up text-sm"></i>
+                        </button>
+                        <button @click.stop="moveCategory(index, 1)" 
+                                :disabled="index === categoryList.length - 1"
+                                class="w-8 h-8 flex items-center justify-center rounded-lg transition"
+                                :class="index === categoryList.length - 1 ? 'text-gray-200' : 'text-teal-500 hover:bg-teal-50'">
+                            <i class="fas fa-chevron-down text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 新增類別 -->
+                <div @click="editCategory({})" 
+                     class="bg-white px-4 py-3 rounded-xl flex items-center gap-3 cursor-pointer active:bg-gray-50 transition">
+                    <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                        <i class="fas fa-plus text-gray-500"></i>
+                    </div>
+                    <span class="font-bold text-slate-900">新增類別</span>
+                </div>
+            </div>
+
+            <!-- 說明文字 -->
+            <div class="mt-4 px-4 pb-4 text-xs text-gray-400 leading-relaxed">
+                若想要為類別建立特定的分帳方式，可以至
+                <span class="text-teal-500">「更多選項」</span>
+                設定。
+            </div>
+        </main>
+
+        <!-- 編輯類別 Modal -->
+        <transition name="fade">
+            <div v-if="showEditModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-40" @click="closeEditModal"></div>
+        </transition>
+        <transition name="slide-up">
+            <div v-if="showEditModal" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-[2rem] z-50 shadow-2xl overflow-hidden max-w-md mx-auto flex flex-col" style="max-height: 90vh;">
+                <div class="px-4 py-3 flex justify-between items-center border-b border-gray-100">
+                    <button @click="closeEditModal" class="w-8 h-8 flex items-center justify-center text-gray-500 text-xl">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <h3 class="text-lg font-bold text-slate-900">{{ editingCategory ? '編輯類別' : '新增類別' }}</h3>
+                    <button @click="saveCategory" 
+                            :disabled="!editForm.name || saving"
+                            class="px-4 py-1.5 rounded-full text-sm font-bold transition-colors"
+                            :class="editForm.name && !saving ? 'bg-teal-500 text-white' : 'bg-gray-200 text-gray-400'">
+                        儲存
+                    </button>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto px-6 py-6">
+                    <!-- 名稱輸入 -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-bold text-slate-900 mb-3">名稱</label>
+                        <div class="flex items-center gap-3">
+                            <input v-model="editForm.name" 
+                                   type="text" 
+                                   placeholder="輸入類別名稱"
+                                   class="flex-1 px-0 py-2 bg-transparent font-bold text-slate-900 outline-none border-b-2 border-teal-500 focus:border-teal-600 transition">
+                            <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-xl cursor-pointer" @click="showIconModal = true">
+                                <i :class="getCategoryIcon(editForm.icon)" class="text-gray-600"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 圖示選擇 Modal -->
+                <transition name="fade">
+                    <div v-if="showIconModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50" @click="showIconModal = false"></div>
+                </transition>
+                <transition name="slide-up">
+                    <div v-if="showIconModal" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-[2rem] z-[60] shadow-2xl overflow-hidden max-w-md mx-auto" style="max-height: 70vh;">
+                        <div class="p-4 border-b border-gray-100 flex justify-between items-center relative">
+                            <button @click="showIconModal = false" class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full text-gray-500"><i class="fas fa-times"></i></button>
+                            <h3 class="text-lg font-bold text-center w-full">圖示</h3>
+                        </div>
+                        <div class="p-4">
+                            <!-- 標籤 -->
+                            <div class="flex gap-4 mb-4 border-b border-gray-100">
+                                <button @click="iconTab = 'items'" 
+                                        class="pb-2 font-bold transition"
+                                        :class="iconTab === 'items' ? 'text-slate-900 border-b-2 border-teal-500' : 'text-gray-400'">
+                                    物品
+                                </button>
+                                <button @click="iconTab = 'people'" 
+                                        class="pb-2 font-bold transition"
+                                        :class="iconTab === 'people' ? 'text-slate-900 border-b-2 border-teal-500' : 'text-gray-400'">
+                                    人物
+                                </button>
+                            </div>
+                            <!-- 圖示網格 -->
+                            <div class="grid grid-cols-6 gap-3 max-h-64 overflow-y-auto hide-scrollbar">
+                                <div v-for="icon in (iconTab === 'items' ? itemIcons : peopleIcons)" 
+                                     :key="icon"
+                                     @click="selectIcon(icon)"
+                                     class="w-12 h-12 rounded-xl flex items-center justify-center cursor-pointer transition"
+                                     :class="editForm.icon === icon ? 'bg-teal-100 border-2 border-teal-500' : 'bg-gray-50 hover:bg-gray-100'">
+                                    <i :class="icon" class="text-2xl text-gray-700"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </transition>
+            </div>
+        </transition>
+
+    </div>
+
+    <script>
+        const { createApp, ref, reactive, onMounted } = Vue
+        const { createClient } = supabase
+        const SUPABASE_URL = 'https://wbhertwvqtfdwderscmj.supabase.co'
+        const SUPABASE_KEY = 'sb_publishable_8xMP9OKEx90C7q1YSz0XBw_tUma_cPF'
+        const _supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
+
+        createApp({
+            setup() {
+                const loading = ref(true)
+                const categoryList = ref([])
+                const showEditModal = ref(false)
+                const showIconModal = ref(false)
+                const iconTab = ref('items')
+                const editingCategory = ref(null)
+                const saving = ref(false)
+                const bookId = ref(null)
+
+                const editForm = reactive({
+                    name: '',
+                    icon: 'fas fa-circle'
+                })
+
+                const itemIcons = [
+                    'fas fa-utensils', 'fas fa-glass-water', 'fas fa-hamburger', 'fas fa-pizza-slice',
+                    'fas fa-coffee', 'fas fa-birthday-cake', 'fas fa-ice-cream', 'fas fa-cookie',
+                    'fas fa-train', 'fas fa-car', 'fas fa-plane', 'fas fa-ship',
+                    'fas fa-ticket-alt', 'fas fa-film', 'fas fa-music', 'fas fa-gamepad',
+                    'fas fa-hotel', 'fas fa-bed', 'fas fa-home', 'fas fa-building',
+                    'fas fa-shopping-bag', 'fas fa-shopping-cart', 'fas fa-tshirt', 'fas fa-gem',
+                    'fas fa-box', 'fas fa-gift', 'fas fa-tag', 'fas fa-wallet',
+                    'fas fa-heart', 'fas fa-star', 'fas fa-fire', 'fas fa-lightbulb'
+                ]
+
+                const peopleIcons = [
+                    'fas fa-user', 'fas fa-user-friends', 'fas fa-users', 'fas fa-user-tie',
+                    'fas fa-baby', 'fas fa-child', 'fas fa-user-graduate', 'fas fa-user-md',
+                    'fas fa-user-nurse', 'fas fa-user-astronaut', 'fas fa-user-cog', 'fas fa-user-shield'
+                ]
+
+                const getCategoryIcon = (iconName) => {
+                    if (iconName && iconName.startsWith('fas ')) {
+                        return iconName
+                    }
+                    // 舊的類別名稱對應圖標
+                    const icons = {
+                        '食物': 'fas fa-utensils',
+                        '飲料': 'fas fa-glass-water',
+                        '交通': 'fas fa-train',
+                        '票券': 'fas fa-ticket-alt',
+                        '住宿': 'fas fa-hotel',
+                        '購物': 'fas fa-shopping-bag',
+                        '其他': 'fas fa-box'
+                    }
+                    return icons[iconName] || 'fas fa-circle'
+                }
+
+                const loadCategories = async () => {
+                    loading.value = true
+                    try {
+                        const bookId = localStorage.getItem('active_book_id')
+                        if (!bookId) {
+                            window.location.href = 'index.html'
+                            return
+                        }
+
+                        const { data, error } = await _supabase.from('options')
+                            .select('*')
+                            .eq('book_id', bookId)
+                            .eq('category_type', 'category')
+                            .order('category_sort')
+                        
+                        if (error) {
+                            console.error('載入類別錯誤:', error)
+                            alert('載入類別失敗: ' + error.message)
+                            // 如果載入失敗，使用預設類別
+                            categoryList.value = [
+                                { category_name: '食物' },
+                                { category_name: '飲料' },
+                                { category_name: '交通' },
+                                { category_name: '票券' },
+                                { category_name: '住宿' },
+                                { category_name: '購物' },
+                                { category_name: '其他' }
+                            ]
+                        } else if (data && data.length > 0) {
+                            categoryList.value = data
+                        } else {
+                            // 如果沒有資料，使用預設類別
+                            categoryList.value = [
+                                { category_name: '食物' },
+                                { category_name: '飲料' },
+                                { category_name: '交通' },
+                                { category_name: '票券' },
+                                { category_name: '住宿' },
+                                { category_name: '購物' },
+                                { category_name: '其他' }
+                            ]
+                        }
+                    } catch(err) {
+                        console.error('載入類別時發生錯誤:', err)
+                        alert('載入類別時發生錯誤，請重新整理頁面')
+                    } finally {
+                        loading.value = false
+                    }
+                }
+
+                const moveCategory = async (index, direction) => {
+                    if ((index === 0 && direction === -1) || (index === categoryList.value.length - 1 && direction === 1)) {
+                        return
+                    }
+
+                    const newIndex = index + direction
+                    const temp = categoryList.value[index]
+                    categoryList.value[index] = categoryList.value[newIndex]
+                    categoryList.value[newIndex] = temp
+
+                    // 更新資料庫中的排序
+                    const bookId = localStorage.getItem('active_book_id')
+                    if (!bookId) return
+
+                    // 更新所有類別的排序
+                    const updates = categoryList.value.map((cat, idx) => ({
+                        option_id: cat.option_id,
+                        category_sort: idx + 1
+                    }))
+
+                    for (const update of updates) {
+                        if (update.option_id) {
+                            const { error } = await _supabase.from('options')
+                                .update({ category_sort: update.category_sort })
+                                .eq('option_id', update.option_id)
+                            
+                            if (error) {
+                                console.error('更新排序錯誤:', error)
+                                // 如果更新失敗，重新載入列表
+                                await loadCategories()
+                                return
+                            }
+                        }
+                    }
+                }
+
+                const editCategory = (cat) => {
+                    editingCategory.value = cat
+                    editForm.name = cat.category_name || ''
+                    editForm.icon = cat.category_icon || getCategoryIcon(cat.category_name)
+                    showEditModal.value = true
+                }
+
+                const selectIcon = (icon) => {
+                    editForm.icon = icon
+                    showIconModal.value = false
+                }
+
+                const closeEditModal = () => {
+                    showEditModal.value = false
+                    editingCategory.value = null
+                    editForm.name = ''
+                    editForm.icon = 'fas fa-circle'
+                    showIconModal.value = false
+                }
+
+                const saveCategory = async () => {
+                    if (!editForm.name) return
+
+                    const bookId = localStorage.getItem('active_book_id')
+                    if (!bookId) return
+
+                    saving.value = true
+
+                    if (editingCategory.value && editingCategory.value.option_id) {
+                        // 更新現有類別
+                        const { error } = await _supabase.from('options')
+                            .update({
+                                category_name: editForm.name,
+                                category_icon: editForm.icon
+                            })
+                            .eq('option_id', editingCategory.value.option_id)
+
+                        if (!error) {
+                            closeEditModal()
+                            await loadCategories()
+                        } else {
+                            alert('更新失敗: ' + error.message)
+                        }
+                    } else {
+                        // 新增類別
+                        const { data: existing } = await _supabase.from('options')
+                            .select('category_sort')
+                            .eq('book_id', bookId)
+                            .eq('category_type', 'category')
+                            .order('category_sort', { ascending: false })
+                            .limit(1)
+
+                        const nextSort = existing && existing.length > 0 ? (existing[0].category_sort || 0) + 1 : 1
+
+                        const { error } = await _supabase.from('options').insert([{
+                            book_id: bookId,
+                            category_type: 'category',
+                            category_name: editForm.name,
+                            category_icon: editForm.icon,
+                            category_sort: nextSort
+                        }])
+
+                        if (!error) {
+                            closeEditModal()
+                            await loadCategories()
+                        } else {
+                            alert('新增失敗: ' + error.message)
+                        }
+                    }
+
+                    saving.value = false
+                }
+
+                onMounted(() => {
+                    loadCategories()
+                })
+
+                return {
+                    loading,
+                    categoryList,
+                    showEditModal,
+                    showIconModal,
+                    iconTab,
+                    editingCategory,
+                    editForm,
+                    saving,
+                    itemIcons,
+                    peopleIcons,
+                    getCategoryIcon,
+                    editCategory,
+                    selectIcon,
+                    closeEditModal,
+                    saveCategory,
+                    moveCategory
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>
