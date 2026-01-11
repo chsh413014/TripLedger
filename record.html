@@ -24,27 +24,36 @@
 
         /* Dark Mode Support for All Pages */
         @media (prefers-color-scheme: dark) {
-            body { background-color: #111827 !important; color: #f9fafb !important; }
+            body { background-color: #111827 !important; color: #ffffff !important; }
             #app { background-color: #1f2937 !important; }
             header { background-color: #1f2937 !important; }
             .bg-gray-50 { background-color: #111827 !important; }
             .bg-white { background-color: #374151 !important; }
-            .text-slate-900 { color: #f9fafb !important; }
+            .text-slate-900 { color: #ffffff !important; }
             .text-slate-800 { color: #e5e7eb !important; }
             .text-slate-700 { color: #d1d5db !important; }
-            .text-gray-500 { color: #9ca3af !important; }
-            .text-gray-400 { color: #6b7280 !important; }
-            .text-gray-300 { color: #4b5563 !important; }
-            .border-gray-50 { border-color: #374151 !important; }
-            .border-gray-100 { border-color: #374151 !important; }
+            .text-gray-500 { color: #d1d5db !important; }
+            .text-gray-400 { color: #9ca3af !important; }
+            .text-gray-300 { color: #9ca3af !important; }
+            .text-blue-500 { color: #60a5fa !important; }
+            .text-blue-600 { color: #60a5fa !important; }
+            .text-yellow-500 { color: #fbbf24 !important; }
+            .text-yellow-600 { color: #fbbf24 !important; }
+            .text-red-500 { color: #f87171 !important; }
+            .border-gray-50 { border-color: #4b5563 !important; }
+            .border-gray-100 { border-color: #4b5563 !important; }
             .border-gray-200 { border-color: #4b5563 !important; }
             .bg-gray-100 { background-color: #374151 !important; }
             .bg-gray-200 { background-color: #4b5563 !important; }
+            .bg-yellow-400 { background-color: #f59e0b !important; }
             .hover\:bg-gray-100:hover { background-color: #4b5563 !important; }
             .hover\:bg-gray-50:hover { background-color: #4b5563 !important; }
             .active\:bg-gray-50:active { background-color: #4b5563 !important; }
-            .divide-gray-100 > * { border-color: #374151 !important; }
-            .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3) !important; }
+            .divide-gray-100 > * { border-color: #4b5563 !important; }
+            .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.5) !important; }
+            .bg-slate-900 { background-color: #3b82f6 !important; }
+            .bg-teal-500 { background-color: #14b8a6 !important; }
+            .bg-teal-600 { background-color: #0d9488 !important; }
         }
         
         /* Calculator Dark Mode Support */
@@ -516,11 +525,23 @@
                         }
 
                         // 查詢 options 表
-                        const { data, error } = await _supabase.from('options')
-                            .select('*')
+                        // 先嘗試查詢包含 category_icon
+                        let { data, error } = await _supabase.from('options')
+                            .select('option_id, book_id, category_type, category_name, category_sort, category_icon')
                             .eq('book_id', bookId)
                             .eq('category_type', 'category')
                             .order('category_sort')
+                        
+                        // 如果查詢失敗（可能是欄位不存在），嘗試不包含 category_icon
+                        if (error && error.message.includes('category_icon')) {
+                            const result = await _supabase.from('options')
+                                .select('option_id, book_id, category_type, category_name, category_sort')
+                                .eq('book_id', bookId)
+                                .eq('category_type', 'category')
+                                .order('category_sort')
+                            data = result.data
+                            error = result.error
+                        }
                         
                         if (error) {
                             console.error('❌ 載入類別選項錯誤:', error)
@@ -553,16 +574,36 @@
                                 ]
                             } else if (commonOptions && commonOptions.length > 0) {
                                 // 插入到 options 表
-                                const optionsToInsert = commonOptions.map((opt, index) => ({
+                                // 嘗試插入包含 category_icon（如果欄位存在）
+                                let optionsToInsert = commonOptions.map((opt, index) => ({
                                     book_id: bookId,
                                     category_type: opt.category_type,
                                     category_name: opt.category_name,
-                                    category_sort: index + 1
+                                    category_sort: index + 1,
+                                    category_icon: opt.category_icon || null
                                 }))
                                 
-                                const { error: insertError } = await _supabase
+                                // 如果插入失敗且是因為欄位不存在，不包含 category_icon
+                                let insertError = null
+                                let { error: firstInsertError } = await _supabase
                                     .from('options')
                                     .insert(optionsToInsert)
+                                
+                                if (firstInsertError && firstInsertError.message.includes('category_icon')) {
+                                    // 重新構建不包含 category_icon 的資料
+                                    optionsToInsert = commonOptions.map((opt, index) => ({
+                                        book_id: bookId,
+                                        category_type: opt.category_type,
+                                        category_name: opt.category_name,
+                                        category_sort: index + 1
+                                    }))
+                                    const result = await _supabase
+                                        .from('options')
+                                        .insert(optionsToInsert)
+                                    insertError = result.error
+                                } else {
+                                    insertError = firstInsertError
+                                }
                                 
                                 if (insertError) {
                                     console.error('❌ 插入選項到 options 表失敗:', insertError)
@@ -572,11 +613,22 @@
                                     }))
                                 } else {
                                     // 重新查詢 options 表
-                                    const { data: newData } = await _supabase.from('options')
-                                        .select('*')
+                                    // 先嘗試查詢包含 category_icon
+                                    let { data: newData } = await _supabase.from('options')
+                                        .select('option_id, book_id, category_type, category_name, category_sort, category_icon')
                                         .eq('book_id', bookId)
                                         .eq('category_type', 'category')
                                         .order('category_sort')
+                                    
+                                    // 如果查詢失敗（可能是欄位不存在），嘗試不包含 category_icon
+                                    if (!newData) {
+                                        const result = await _supabase.from('options')
+                                            .select('option_id, book_id, category_type, category_name, category_sort')
+                                            .eq('book_id', bookId)
+                                            .eq('category_type', 'category')
+                                            .order('category_sort')
+                                        newData = result.data
+                                    }
                                     
                                     if (newData && newData.length > 0) {
                                         categoryOptions.value = newData

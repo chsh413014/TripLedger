@@ -29,6 +29,7 @@
             .text-gray-400 { color: #9ca3af !important; }
             .text-gray-300 { color: #9ca3af !important; }
             .text-gray-600 { color: #e5e7eb !important; }
+            .text-slate-700 { color: #d1d5db !important; }
             /* 藍色文字 - 使用更亮的藍色 */
             .text-blue-600 { color: #60a5fa !important; }
             /* 邊框顏色 */
@@ -80,7 +81,7 @@
                              class="bg-white p-4 rounded-2xl shadow-sm flex items-center justify-between cursor-pointer active:bg-gray-50 transition">
                             <!-- 左側：圖標 -->
                             <div class="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center shrink-0 mr-3">
-                                <span class="text-xl">{{ getCategoryIcon(item.pay_category) }}</span>
+                                <i :class="getCategoryIcon(item.pay_category, categoryIcons)" class="text-xl text-slate-700"></i>
                             </div>
                             
                             <!-- 中間：項目資訊 -->
@@ -145,6 +146,7 @@
                 const currentBook = ref(null)
                 const ledgerList = ref([])
                 const loading = ref(true)
+                const categoryIcons = ref({}) // 儲存類別名稱對應的圖標
 
                 // 按日期分組記錄
                 const groupedRecords = computed(() => {
@@ -175,6 +177,30 @@
                     const { data: book } = await _supabase.from('books').select('*').eq('book_id', bookId).single()
                     currentBook.value = book
 
+                    // 載入類別圖標對應
+                    // 先嘗試查詢包含 category_icon
+                    let { data: categories } = await _supabase.from('options')
+                        .select('category_name, category_icon')
+                        .eq('book_id', bookId)
+                        .eq('category_type', 'category')
+                    
+                    // 如果查詢失敗（可能是欄位不存在），只查詢名稱
+                    if (!categories) {
+                        const result = await _supabase.from('options')
+                            .select('category_name')
+                            .eq('book_id', bookId)
+                            .eq('category_type', 'category')
+                        categories = result.data
+                    }
+                    
+                    if (categories) {
+                        categories.forEach(cat => {
+                            if (cat.category_icon) {
+                                categoryIcons.value[cat.category_name] = cat.category_icon
+                            }
+                        })
+                    }
+
                     const { data: list } = await _supabase.from('ledger').select('*').eq('book_id', bookId).order('shop_date', { ascending: false })
                     ledgerList.value = list || []
                     loading.value = false
@@ -200,9 +226,25 @@
                     return `${year}年${month}月${String(day).padStart(2,'0')}日`
                 }
                 
-                const getCategoryIcon = (c) => ({'食物':'🍔','交通':'🚆','購物':'🛍️','住宿':'🏨'}[c] || '📄')
+                const getCategoryIcon = (categoryName, iconsMap = {}) => {
+                    // 如果有資料庫中的圖標，優先使用
+                    if (iconsMap[categoryName] && iconsMap[categoryName].startsWith('fas ')) {
+                        return iconsMap[categoryName]
+                    }
+                    // 否則使用預設圖標對應
+                    const defaultIcons = {
+                        '食物': 'fas fa-utensils',
+                        '飲料': 'fas fa-glass-water',
+                        '交通': 'fas fa-train',
+                        '票券': 'fas fa-ticket-alt',
+                        '住宿': 'fas fa-hotel',
+                        '購物': 'fas fa-shopping-bag',
+                        '其他': 'fas fa-box'
+                    }
+                    return defaultIcons[categoryName] || 'fas fa-circle'
+                }
 
-                return { currentBook, ledgerList, loading, groupedRecords, formatMoney, formatDateHeader, getCategoryIcon, editRecord }
+                return { currentBook, ledgerList, loading, groupedRecords, categoryIcons, formatMoney, formatDateHeader, getCategoryIcon, editRecord }
             }
         }).mount('#app')
     </script>

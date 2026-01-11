@@ -22,22 +22,23 @@
         
         /* Dark Mode Support */
         @media (prefers-color-scheme: dark) {
-            body { background-color: #111827 !important; color: #f9fafb !important; }
+            body { background-color: #111827 !important; color: #ffffff !important; }
             #app { background-color: #1f2937 !important; }
             header { background-color: #1f2937 !important; }
             .bg-gray-50 { background-color: #111827 !important; }
             .bg-white { background-color: #374151 !important; }
-            .text-slate-900 { color: #f9fafb !important; }
+            .text-slate-900 { color: #ffffff !important; }
             .text-slate-800 { color: #e5e7eb !important; }
             .text-slate-700 { color: #d1d5db !important; }
-            .text-gray-500 { color: #9ca3af !important; }
-            .text-gray-400 { color: #6b7280 !important; }
-            .text-gray-300 { color: #4b5563 !important; }
-            .border-gray-100 { border-color: #374151 !important; }
+            .text-gray-500 { color: #d1d5db !important; }
+            .text-gray-400 { color: #9ca3af !important; }
+            .text-gray-300 { color: #9ca3af !important; }
+            .text-slate-700 { color: #d1d5db !important; }
+            .border-gray-100 { border-color: #4b5563 !important; }
             .border-gray-200 { border-color: #4b5563 !important; }
             .bg-gray-100 { background-color: #374151 !important; }
             .hover\:bg-gray-100:hover { background-color: #4b5563 !important; }
-            .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3) !important; }
+            .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.5) !important; }
         }
     </style>
 </head>
@@ -64,7 +65,7 @@
                      class="bg-white px-4 py-3 rounded-xl flex items-center justify-between cursor-pointer active:bg-gray-50 transition">
                     <div @click="editCategory(cat)" class="flex items-center gap-3 flex-1">
                         <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-xl">
-                            <i :class="getCategoryIcon(cat.category_icon || cat.category_name)" class="text-gray-600"></i>
+                            <i :class="getCategoryIcon(cat.category_icon || cat.category_name)" class="text-slate-700"></i>
                         </div>
                         <span class="font-bold text-slate-900">{{ cat.category_name }}</span>
                     </div>
@@ -131,7 +132,7 @@
                                    placeholder="輸入類別名稱"
                                    class="flex-1 px-0 py-2 bg-transparent font-bold text-slate-900 outline-none border-b-2 border-teal-500 focus:border-teal-600 transition">
                             <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-xl cursor-pointer" @click="showIconModal = true">
-                                <i :class="getCategoryIcon(editForm.icon)" class="text-gray-600"></i>
+                                <i :class="getCategoryIcon(editForm.icon)" class="text-slate-700"></i>
                             </div>
                         </div>
                     </div>
@@ -168,7 +169,7 @@
                                      @click="selectIcon(icon)"
                                      class="w-12 h-12 rounded-xl flex items-center justify-center cursor-pointer transition"
                                      :class="editForm.icon === icon ? 'bg-teal-100 border-2 border-teal-500' : 'bg-gray-50 hover:bg-gray-100'">
-                                    <i :class="icon" class="text-2xl text-gray-700"></i>
+                                    <i :class="icon" class="text-2xl text-slate-700"></i>
                                 </div>
                             </div>
                         </div>
@@ -245,11 +246,23 @@
                             return
                         }
 
-                        const { data, error } = await _supabase.from('options')
-                            .select('*')
+                        // 先嘗試查詢包含 category_icon
+                        let { data, error } = await _supabase.from('options')
+                            .select('option_id, book_id, category_type, category_name, category_sort, category_icon')
                             .eq('book_id', bookId)
                             .eq('category_type', 'category')
                             .order('category_sort')
+                        
+                        // 如果查詢失敗（可能是欄位不存在），嘗試不包含 category_icon
+                        if (error && error.message.includes('category_icon')) {
+                            const result = await _supabase.from('options')
+                                .select('option_id, book_id, category_type, category_name, category_sort')
+                                .eq('book_id', bookId)
+                                .eq('category_type', 'category')
+                                .order('category_sort')
+                            data = result.data
+                            error = result.error
+                        }
                         
                         if (error) {
                             console.error('載入類別錯誤:', error)
@@ -352,14 +365,32 @@
 
                     if (editingCategory.value && editingCategory.value.option_id) {
                         // 更新現有類別
-                        const { error } = await _supabase.from('options')
-                            .update({
-                                category_name: editForm.name,
-                                category_icon: editForm.icon
-                            })
+                        // 先嘗試包含 category_icon
+                        let updateData = {
+                            category_name: editForm.name,
+                            category_icon: editForm.icon
+                        }
+                        
+                        let { error } = await _supabase.from('options')
+                            .update(updateData)
                             .eq('option_id', editingCategory.value.option_id)
 
-                        if (!error) {
+                        // 如果失敗且是因為欄位不存在，只更新名稱
+                        if (error && error.message.includes('category_icon')) {
+                            updateData = { category_name: editForm.name }
+                            const result = await _supabase.from('options')
+                                .update(updateData)
+                                .eq('option_id', editingCategory.value.option_id)
+                            error = result.error
+                            
+                            if (error) {
+                                alert('更新失敗: ' + error.message + '\n\n提示：請先在 Supabase 執行 database_update.sql 添加 category_icon 欄位')
+                            } else {
+                                alert('更新成功，但 category_icon 欄位不存在，圖標設定已忽略。\n\n建議：請在 Supabase 執行 database_update.sql 添加 category_icon 欄位以啟用圖標功能。')
+                                closeEditModal()
+                                await loadCategories()
+                            }
+                        } else if (!error) {
                             closeEditModal()
                             await loadCategories()
                         } else {
@@ -376,15 +407,36 @@
 
                         const nextSort = existing && existing.length > 0 ? (existing[0].category_sort || 0) + 1 : 1
 
-                        const { error } = await _supabase.from('options').insert([{
+                        // 先嘗試包含 category_icon
+                        let insertData = {
                             book_id: bookId,
                             category_type: 'category',
                             category_name: editForm.name,
                             category_icon: editForm.icon,
                             category_sort: nextSort
-                        }])
+                        }
+                        
+                        let { error } = await _supabase.from('options').insert([insertData])
 
-                        if (!error) {
+                        // 如果失敗且是因為欄位不存在，不包含 category_icon
+                        if (error && error.message.includes('category_icon')) {
+                            insertData = {
+                                book_id: bookId,
+                                category_type: 'category',
+                                category_name: editForm.name,
+                                category_sort: nextSort
+                            }
+                            const result = await _supabase.from('options').insert([insertData])
+                            error = result.error
+                            
+                            if (error) {
+                                alert('新增失敗: ' + error.message + '\n\n提示：請先在 Supabase 執行 database_update.sql 添加 category_icon 欄位')
+                            } else {
+                                alert('新增成功，但 category_icon 欄位不存在，圖標設定已忽略。\n\n建議：請在 Supabase 執行 database_update.sql 添加 category_icon 欄位以啟用圖標功能。')
+                                closeEditModal()
+                                await loadCategories()
+                            }
+                        } else if (!error) {
                             closeEditModal()
                             await loadCategories()
                         } else {
