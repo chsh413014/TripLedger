@@ -4,20 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>亞莉孕婦SPA | 專屬您的孕期與美顏奢華養護</title>
+    <link rel="icon" type="image/png" href="SPA/LOGO.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500&family=Noto+Serif+TC:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        /* --- 1. 核心變數與重置 (Variables & Reset) --- */
+        /* ============================================
+           1. 核心變數與基礎設定
+           ============================================ */
         :root {
-            /* 品牌色 - 依照 Logo */
-            --primary-purple: #9686b8; /* 柔和紫羅蘭 */
-            --dark-purple: #6a5a8a;   /* 深紫色 (文字/重點) */
-            --accent-gold: #c5a065;   /* 香檳金 */
-            --bg-cream: #fdfbf7;      /* 暖米白背景 */
-            --text-charcoal: #333333; /* 深炭灰內文 */
+            --primary-purple: #9686b8;  /* 柔和紫羅蘭 */
+            --dark-purple: #6a5a8a;      /* 深紫色 */
+            --accent-gold: #c5a065;      /* 香檳金 */
+            --bg-cream: #fdfbf7;         /* 暖米白 */
+            --text-charcoal: #333333;    /* 深炭灰 */
             --white: #ffffff;
         }
 
@@ -28,7 +30,7 @@
         }
 
         html {
-            scroll-behavior: smooth; /* 平滑捲動 */
+            scroll-behavior: smooth;
         }
 
         body {
@@ -37,18 +39,27 @@
             color: var(--text-charcoal);
             line-height: 1.6;
             overflow-x: hidden;
+            padding-top: 70px;
         }
 
-        /* 字體設定 */
         h1, h2, h3, h4, .serif {
             font-family: 'Noto Serif TC', serif;
             font-weight: 600;
         }
 
-        a { text-decoration: none; color: inherit; transition: 0.3s; }
-        ul { list-style: none; }
+        a {
+            text-decoration: none;
+            color: inherit;
+            transition: 0.3s;
+        }
 
-        /* --- 2. 通用元件 (Components) --- */
+        ul {
+            list-style: none;
+        }
+
+        /* ============================================
+           2. 通用元件
+           ============================================ */
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -59,9 +70,22 @@
             padding: 80px 0;
         }
 
-        .text-center { text-align: center; }
-        .text-gold { color: var(--accent-gold); }
-        .text-purple { color: var(--primary-purple); }
+        .text-center {
+            text-align: center;
+        }
+
+        .text-gold {
+            color: var(--accent-gold);
+        }
+
+        .text-purple {
+            color: var(--primary-purple);
+        }
+
+        .text-muted {
+            color: #666;
+            font-size: 0.95rem;
+        }
 
         /* 按鈕樣式 */
         .btn {
@@ -69,10 +93,9 @@
             padding: 12px 30px;
             border-radius: 50px;
             font-size: 1rem;
-            letter-spacing: 1px;
             cursor: pointer;
             position: relative;
-            overflow: hidden;
+            transition: 0.3s;
         }
 
         .btn-gold {
@@ -85,7 +108,6 @@
             background-color: var(--dark-purple);
             border-color: var(--dark-purple);
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(197, 160, 101, 0.4);
         }
 
         .btn-outline {
@@ -99,15 +121,17 @@
             color: var(--white);
         }
 
-        /* --- 3. 頂部導航 (Header) --- */
+        /* ============================================
+           3. Header 導航列
+           ============================================ */
         header {
             position: fixed;
             top: 0;
+            left: 0;
             width: 100%;
-            background: rgba(253, 251, 247, 0.95);
-            backdrop-filter: blur(10px);
+            background: rgba(253, 251, 247, 0.98);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
             z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             padding: 15px 0;
         }
 
@@ -117,82 +141,164 @@
             align-items: center;
         }
 
-        .logo {
+        /* Logo 文字設計 */
+        .logo-text {
             font-family: 'Noto Serif TC', serif;
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             color: var(--primary-purple);
             font-weight: 700;
             display: flex;
-            align-items: center;
-            gap: 10px;
+            flex-direction: column;
+            align-items: flex-start;
+            line-height: 1.1;
         }
 
-        .logo img { height: 40px; } /* 請替換為真實 Logo */
+        .logo-sub {
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            color: var(--accent-gold);
+            text-transform: uppercase;
+            font-family: sans-serif;
+            margin-top: 2px;
+        }
 
         .nav-links {
             display: flex;
             gap: 30px;
         }
 
-        .nav-links a {
-            font-size: 0.95rem;
-            color: var(--text-charcoal);
-            position: relative;
+        .nav-links a:hover {
+            color: var(--accent-gold);
         }
 
-        .nav-links a:hover { color: var(--accent-gold); }
+        .mobile-menu-btn {
+            display: none;
+            font-size: 1.5rem;
+            color: var(--primary-purple);
+            border: none;
+            background: none;
+            cursor: pointer;
+        }
 
-        /* 手機選單隱藏 */
-        .mobile-menu-btn { display: none; font-size: 1.5rem; color: var(--primary-purple); border:none; background:none;}
-
-        /* --- 4. Hero Section (首頁主視覺) --- */
+        /* ============================================
+           4. Hero 主視覺區塊
+           ============================================ */
         .hero {
-            height: 100vh;
-            background: linear-gradient(rgba(106, 90, 138, 0.2), rgba(106, 90, 138, 0.4)), url('https://images.unsplash.com/photo-1537673156864-5d2572d0b28d?q=80&w=1920&auto=format&fit=crop'); /* 示意圖 */
-            background-size: cover;
-            background-position: center;
+            height: 90vh;
+            position: relative;
+            background: url('Gemini_Generated_Image_nvn1lbnvn1lbnvn1.png') center/cover no-repeat;
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
             color: var(--white);
-            margin-top: 60px;
+            overflow: hidden;
         }
 
-        .hero-content h1 {
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(106, 90, 138, 0.5));
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h1 {
             font-size: 3.5rem;
             margin-bottom: 20px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
 
-        .hero-content p {
-            font-size: 1.2rem;
-            margin-bottom: 40px;
-            font-weight: 300;
+        /* ============================================
+           5. 獨家方案區塊
+           ============================================ */
+        .package-section {
+            background: linear-gradient(to bottom, #fff, #f3f0f7);
         }
 
-        /* --- 5. 關於區塊 (Trust) --- */
-        .features-grid {
+        .packages-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 30px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
             margin-top: 50px;
         }
 
-        .feature-item {
+        .package-card {
+            background: var(--white);
+            border: 1px solid rgba(197, 160, 101, 0.3);
+            border-radius: 20px;
+            padding: 40px;
             text-align: center;
-            padding: 20px;
-            border: 1px solid rgba(197, 160, 101, 0.2);
-            border-radius: 10px;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            transition: 0.3s;
+            overflow: hidden;
         }
 
-        .feature-item i {
-            font-size: 2rem;
+        .package-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(150, 134, 184, 0.2);
+        }
+
+        .badge {
+            position: absolute;
+            top: 20px;
+            right: -30px;
+            background: var(--accent-gold);
+            color: white;
+            padding: 5px 40px;
+            transform: rotate(45deg);
+            font-size: 0.9rem;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .package-title {
+            font-size: 1.8rem;
+            color: var(--primary-purple);
+            margin-bottom: 10px;
+        }
+
+        .package-subtitle {
             color: var(--accent-gold);
-            margin-bottom: 15px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            display: block;
         }
 
-        /* --- 6. 服務區塊 - 左右佈局 (Services) --- */
+        .package-divider {
+            height: 1px;
+            background: #eee;
+            margin: 20px auto;
+            width: 80%;
+        }
+
+        .package-features {
+            text-align: left;
+            margin-bottom: 30px;
+            display: inline-block;
+        }
+
+        .package-features li {
+            margin-bottom: 12px;
+            font-size: 1.05rem;
+        }
+
+        .package-features i {
+            color: var(--accent-gold);
+            margin-right: 10px;
+        }
+
+        /* ============================================
+           6. 服務區塊 - 左右佈局
+           ============================================ */
         .service-row {
             display: flex;
             align-items: center;
@@ -207,9 +313,9 @@
         .service-img {
             flex: 1;
             height: 400px;
-            border-radius: 20px 0 20px 0; /* 質感圓角 */
+            border-radius: 20px 0 20px 0;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
 
         .service-img img {
@@ -219,7 +325,9 @@
             transition: 0.5s;
         }
 
-        .service-img:hover img { transform: scale(1.05); }
+        .service-img:hover img {
+            transform: scale(1.05);
+        }
 
         .service-text {
             flex: 1;
@@ -248,40 +356,176 @@
             margin-right: 10px;
         }
 
-        /* --- 7. 高訂美顏專區 (Beauty - Highlight) --- */
-        .beauty-section {
-            background-color: #f3f0f7; /* 極淡紫色背景 */
+        /* ============================================
+           7. 統一卡片設計系統 (Unified Card Design)
+           ============================================ */
+        /* 統一標題間距 */
+        .section-header {
+            margin-bottom: 50px;
         }
 
-        .beauty-card-container {
+        .section-header p {
+            margin-top: 10px;
+        }
+
+        /* 統一網格系統 */
+        .card-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
             gap: 30px;
-            margin-top: 40px;
         }
 
-        .beauty-card {
-            background: var(--white);
+        /* 美顏區塊：電腦版 3 欄 */
+        .card-grid.col-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        /* SPA 區塊：電腦版 2 欄 */
+        .card-grid.col-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        /* 核心：統一卡片設計 */
+        .service-card {
+            background: #ffffff;
             padding: 30px;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
             transition: 0.3s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
             border: 1px solid transparent;
+            position: relative;
         }
 
-        .beauty-card:hover {
-            transform: translateY(-10px);
+        /* 滑鼠移過去的效果 */
+        .service-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(106, 90, 138, 0.1);
             border-color: var(--accent-gold);
         }
 
-        .beauty-card h4 {
-            font-size: 1.3rem;
-            color: var(--dark-purple);
-            margin: 15px 0;
+        /* 統一 Icon */
+        .card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+            color: var(--accent-gold);
         }
 
-        /* --- 8. 送禮專區 (Gifting) --- */
+        /* 統一卡片標題 */
+        .service-card h4 {
+            font-size: 1.3rem;
+            color: var(--dark-purple);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        /* 統一內文 */
+        .service-card .desc {
+            font-size: 0.95rem;
+            color: #666;
+            margin-bottom: 20px;
+            text-align: justify;
+            line-height: 1.6;
+        }
+
+        /* 分隔線 (SPA專用) */
+        .card-divider {
+            height: 1px;
+            background: #eee;
+            width: 80%;
+            margin: 0 auto 20px auto;
+        }
+
+        /* 統一標籤 (Tags) */
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .tags span {
+            background: #f8f5ff;
+            color: var(--dark-purple);
+            font-size: 0.8rem;
+            padding: 4px 10px;
+            border-radius: 4px;
+        }
+
+        /* 特殊標籤 (Badge) */
+        .safe-badge {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary-purple);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+            white-space: nowrap;
+        }
+
+        /* CTA 卡片特殊色 */
+        .cta-card {
+            background: var(--primary-purple);
+            text-align: center;
+            justify-content: center;
+        }
+
+        /* 護膚觀念卡樣式 */
+        .beauty-concept-box {
+            background: #fff;
+            border-radius: 15px;
+            padding: 40px;
+            margin-bottom: 50px;
+            border-left: 5px solid var(--accent-gold);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            position: relative;
+        }
+
+        .concept-title {
+            color: var(--dark-purple);
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .concept-title::before {
+            content: '\f0eb';
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            margin-right: 15px;
+            color: var(--accent-gold);
+            font-size: 1.2rem;
+        }
+
+        .concept-text {
+            color: #555;
+            line-height: 1.8;
+            font-size: 1.05rem;
+            text-align: justify;
+        }
+
+        .concept-text strong {
+            color: var(--dark-purple);
+            background: linear-gradient(120deg, rgba(197, 160, 101, 0.2) 0%, rgba(197, 160, 101, 0.2) 100%);
+            background-repeat: no-repeat;
+            background-size: 100% 40%;
+            background-position: 0 90%;
+        }
+
+        /* ============================================
+           9. 送禮專區
+           ============================================ */
         .gifting-section {
             background-color: var(--primary-purple);
             color: var(--white);
@@ -289,7 +533,6 @@
             overflow: hidden;
         }
 
-        /* 裝飾背景 */
         .gifting-section::before {
             content: '';
             position: absolute;
@@ -297,7 +540,7 @@
             left: -10%;
             width: 500px;
             height: 500px;
-            background: rgba(255,255,255,0.05);
+            background: rgba(255, 255, 255, 0.05);
             border-radius: 50%;
         }
 
@@ -313,7 +556,7 @@
             background: var(--white);
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
 
         .steps {
@@ -323,22 +566,24 @@
         }
 
         .step-item {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
             padding: 10px 15px;
             border-radius: 8px;
             font-size: 0.9rem;
         }
 
-        /* --- 9. 手機版底部懸浮 Bar (Mobile Sticky) --- */
+        /* ============================================
+           9. 手機版底部懸浮 Bar
+           ============================================ */
         .mobile-sticky-bar {
-            display: none; /* 桌機隱藏 */
+            display: none;
             position: fixed;
             bottom: 0;
             left: 0;
             width: 100%;
             height: 70px;
             background: var(--white);
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
             z-index: 9999;
             align-items: center;
             padding: 0 15px;
@@ -346,7 +591,7 @@
 
         .btn-sticky-line {
             width: 100%;
-            background: #00B900; /* LINE Green */
+            background: #00B900;
             color: white;
             text-align: center;
             padding: 12px;
@@ -359,27 +604,90 @@
             gap: 10px;
         }
 
-        /* --- 10. RWD 響應式設定 --- */
+        /* ============================================
+           10. 響應式設計 (RWD)
+           ============================================ */
+        @media (max-width: 992px) {
+            .card-grid.col-3 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
         @media (max-width: 768px) {
-            .hero-content h1 { font-size: 2.2rem; }
-            .nav-links, .desktop-cta { display: none; }
-            .mobile-menu-btn { display: block; }
+            .card-grid.col-3,
+            .card-grid.col-2 {
+                grid-template-columns: 1fr;
+            }
 
-            .features-grid { grid-template-columns: 1fr 1fr; }
+            .beauty-concept-box {
+                padding: 25px;
+            }
 
-            .service-row, .service-row.reverse, .gift-box {
+            .concept-title {
+                font-size: 1.3rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-content h1 {
+                font-size: 2.2rem;
+            }
+
+            .desktop-cta {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background: white;
+                flex-direction: column;
+                align-items: center;
+                padding: 20px 0;
+                box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .nav-links li {
+                margin: 15px 0;
+                width: 100%;
+                text-align: center;
+            }
+
+            .packages-grid,
+            .features-grid,
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .service-row,
+            .service-row.reverse,
+            .gift-box {
                 flex-direction: column;
             }
 
-            .service-img { width: 100%; height: 250px; }
+            .service-img {
+                width: 100%;
+                height: 250px;
+            }
 
-            .beauty-card-container { grid-template-columns: 1fr; }
+            .mobile-sticky-bar {
+                display: flex;
+            }
 
-            .mobile-sticky-bar { display: flex; }
-            body { padding-bottom: 70px; } /* 防止內容被底部 Bar 遮擋 */
-
-            .gift-mockup { width: 100%; }
-            .steps { flex-direction: column; gap: 10px; }
+            body {
+                padding-bottom: 70px;
+            }
         }
     </style>
 </head>
@@ -387,20 +695,22 @@
 
     <header>
         <div class="container nav-container">
-            <div class="logo">
-                <i class="fa-solid fa-person-pregnant"></i> 亞莉孕婦SPA
+            <div class="logo-text">
+                亞莉孕婦SPA
+                <span class="logo-sub">PREGNANCY SPA</span>
             </div>
+
             <nav>
-                <ul class="nav-links">
-                    <li><a href="#about">關於亞莉</a></li>
-                    <li><a href="#pregnancy">孕產護理</a></li>
-                    <li><a href="#beauty">高訂美顏</a></li>
-                    <li><a href="#spa">身心SPA</a></li>
-                    <li><a href="#gifting">送禮專區</a></li>
+                <ul class="nav-links" id="navMenu">
+                    <li><a href="#packages" onclick="toggleMenu()" style="color:var(--dark-purple); font-weight:bold;">精選方案</a></li>
+                    <li><a href="#pregnancy" onclick="toggleMenu()">孕產護理</a></li>
+                    <li><a href="#beauty" onclick="toggleMenu()">孕期美顏</a></li>
+                    <li><a href="#spa" onclick="toggleMenu()">身心SPA</a></li>
+                    <li><a href="#gifting" onclick="toggleMenu()">送禮專區</a></li>
                 </ul>
             </nav>
             <a href="https://line.me/R/ti/p/@YourLineID" target="_blank" class="btn btn-gold desktop-cta">預約諮詢</a>
-            <button class="mobile-menu-btn"><i class="fa-solid fa-bars"></i></button>
+            <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></button>
         </div>
     </header>
 
@@ -409,107 +719,259 @@
             <h1>孕期，是一場優雅的蛻變</h1>
             <p>專屬於您的孕產奢華養護與高訂美顏時光</p>
             <div style="margin-top: 30px;">
-                <a href="#pregnancy" class="btn btn-gold" style="margin-right: 15px;">孕期療程</a>
-                <a href="#beauty" class="btn btn-outline" style="color:white; border-color:white;">美顏護理</a>
+                <a href="#packages" class="btn btn-gold">查看雙享方案</a>
             </div>
         </div>
     </section>
 
-    <section id="about" class="section-padding">
-        <div class="container text-center">
-            <h2 class="text-purple">專業，源自於對細節的極致堅持</h2>
-            <p style="max-width: 700px; margin: 20px auto; color: #666;">
-                我們深知孕期與產後的身體變化，亞莉提供全台頂尖的孕產照護與科技美顏。
-                在獨立隱密的奢華空間中，讓您安心卸下疲憊，重拾自信光采。
-            </p>
-            <div class="features-grid">
-                <div class="feature-item">
-                    <i class="fa-solid fa-certificate"></i>
-                    <h4>國際芳療認證</h4>
+    <section id="packages" class="section-padding package-section">
+        <div class="container">
+            <div class="text-center">
+                <h2 class="text-purple">亞莉精選・雙重呵護方案</h2>
+                <p class="text-muted" style="margin-top: 10px;">不只身體要放鬆，臉部肌膚更要細緻呵護</p>
+            </div>
+
+            <div class="packages-grid">
+                <div class="package-card">
+                    <div class="badge">推薦</div>
+                    <h3 class="package-title serif">女王孕期全餐</h3>
+                    <span class="package-subtitle">Body & Face Dual Care</span>
+                    <p style="color:#666; font-size:0.9rem;">擔心躺太久身體不適？我們懂妳。<br>本方案採「分次提領制」，讓妳分兩天享受極致呵護。</p>
+                    
+                    <div class="package-divider"></div>
+                    
+                    <ul class="package-features">
+                        <li><i class="fa-solid fa-check"></i> <b>Day 1：</b>孕婦全身舒緩按摩 (60min)</li>
+                        <li><i class="fa-solid fa-check"></i> <b>Day 2：</b>孕期安全液態飛梭 (60min)</li>
+                        <li><i class="fa-solid fa-heart"></i> <b>貼心亮點：</b>避免久躺、雙倍放鬆</li>
+                    </ul>
+                    <br>
+                    <a href="https://line.me/R/ti/p/@YourLineID?text=我想諮詢女王全餐分次方案" class="btn btn-gold">私訊諮詢女王方案</a>
                 </div>
-                <div class="feature-item">
-                    <i class="fa-solid fa-leaf"></i>
-                    <h4>孕婦專用精油</h4>
-                </div>
-                <div class="feature-item">
-                    <i class="fa-solid fa-pump-medical"></i>
-                    <h4>醫療級消毒</h4>
-                </div>
-                <div class="feature-item">
-                    <i class="fa-solid fa-door-closed"></i>
-                    <h4>VIP 獨立包廂</h4>
+
+                <div class="package-card">
+                    <h3 class="package-title serif">孕肌光采急救</h3>
+                    <span class="package-subtitle">Pregnancy Safe Facial</span>
+                    <p style="color:#666; font-size:0.9rem;">針對孕期賀爾蒙導致的痘痘、暗沉。<br>舊客回娘家或新客首購，皆享專屬體驗價。</p>
+                    
+                    <div class="package-divider"></div>
+                    
+                    <ul class="package-features">
+                        <li><i class="fa-solid fa-check"></i> <b>安全：</b>100% 物理性煥膚 (無酸類)</li>
+                        <li><i class="fa-solid fa-check"></i> <b>效果：</b>改善粉刺、毛孔、蠟黃</li>
+                        <li><i class="fa-solid fa-star"></i> <b>適用：</b>孕期中 / 產後哺乳期</li>
+                    </ul>
+                    <br>
+                    <a href="https://line.me/R/ti/p/@YourLineID?text=我想領取孕期美顏體驗價" class="btn btn-outline" style="background:var(--accent-gold); color:white;">領取美顏體驗價</a>
                 </div>
             </div>
         </div>
     </section>
 
-    <section id="pregnancy" class="section-padding" style="background-color: #fff;">
+<section id="about" class="section-padding" style="background-color: var(--white);">
+        <div class="container">
+            <div class="text-center" style="max-width: 800px; margin: 0 auto;">
+                <div style="font-size: 3rem; color: var(--accent-gold); opacity: 0.3; line-height: 1; margin-bottom: 10px;">
+                    <i class="fa-solid fa-quote-left"></i>
+                </div>
+                
+                <h2 class="text-purple" style="margin-bottom: 20px;">以十年初心，守護您的孕期時光</h2>
+                
+                <div style="text-align: left; line-height: 2; color: #555; font-size: 1.05rem;">
+                    <p style="margin-bottom: 20px;">
+                        嗨，我是 <strong style="color:var(--dark-purple);">Mina</strong>，亞莉孕婦按摩 SPA 的創辦人。
+                    </p>
+                    <p style="margin-bottom: 20px;">
+                        在孕婦按摩領域耕耘已超過 10 年，這些年來我不斷精進，只為了更深入貼近每一位準媽咪的身心需求。
+                        我完全能體會懷孕期間的腰酸背痛、水腫與心理壓力，這些都是身體為了迎接新生命所承受的甜蜜負擔。
+                    </p>
+                    <p style="margin-bottom: 30px;">
+                        在亞莉，我希望利用我的專業知識，為您舒緩這些不適。
+                        這裡沒有冰冷的儀器，只有如朋友般自在的談話與溫暖的手技。
+                        期待能陪伴您，優雅而舒適地度過這段美好孕期。
+                    </p>
+                </div>
+
+                <div style="margin-top: 10px; text-align: right;">
+                    <p style="font-family: 'Noto Serif TC', serif; font-size: 1.2rem; color: var(--accent-gold); font-weight: bold;">Mina</p>
+                    <p style="font-size: 0.8rem; color: #999; letter-spacing: 1px;">FOUNDER of ALI SPA</p>
+                </div>
+
+                <div class="features-grid" style="display:grid; grid-template-columns:repeat(4,1fr); gap:30px; margin-top:60px; border-top: 1px solid #eee; padding-top: 20px;">
+                    <div class="feature-item" style="border:none;"><i class="fa-solid fa-certificate text-gold" style="font-size:2rem; margin-bottom:10px;"></i><h4 style="font-size:0.9rem;">10年資深經驗</h4></div>
+                    <div class="feature-item" style="border:none;"><i class="fa-solid fa-leaf text-gold" style="font-size:2rem; margin-bottom:10px;"></i><h4 style="font-size:0.9rem;">孕婦專用精油</h4></div>
+                    <div class="feature-item" style="border:none;"><i class="fa-solid fa-pump-medical text-gold" style="font-size:2rem; margin-bottom:10px;"></i><h4 style="font-size:0.9rem;">醫療級消毒</h4></div>
+                    <div class="feature-item" style="border:none;"><i class="fa-solid fa-door-closed text-gold" style="font-size:2rem; margin-bottom:10px;"></i><h4 style="font-size:0.9rem;">VIP 獨立包廂</h4></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="pregnancy" class="section-padding">
         <div class="container">
             <div class="service-row">
                 <div class="service-img">
                     <img src="https://images.unsplash.com/photo-1555244162-803834f70033?q=80&w=1000&auto=format&fit=crop" alt="孕婦按摩">
                 </div>
+                
                 <div class="service-text">
-                    <h3>孕婦按摩 & 泌乳護理</h3>
-                    <p>針對孕期腰痠背痛、腿部水腫進行深層舒緩。手法輕柔安全，讓媽咪與寶寶共享寧靜時刻。</p>
-                    <ul class="service-list">
-                        <li><i class="fa-solid fa-check"></i> 孕婦放鬆 SPA (舒緩痠痛/改善睡眠)</li>
-                        <li><i class="fa-solid fa-check"></i> 專業泌乳護理 (疏通乳腺/產後暢通)</li>
-                    </ul>
-                    <a href="https://line.me/R/ti/p/@YourLineID?text=我想諮詢孕婦按摩" class="btn btn-gold">LINE 諮詢時段</a>
+                    <h3 style="margin-bottom: 30px; border-bottom: 2px solid var(--accent-gold); display: inline-block; padding-bottom: 10px;">孕婦按摩 & 泌乳護理</h3>
+                    
+                    <div style="margin-bottom: 25px;">
+                        <h4 style="color:var(--dark-purple); font-size:1.2rem; margin-bottom:8px;">
+                            <i class="fa-solid fa-feather text-gold" style="margin-right: 8px;"></i>孕婦放鬆 SPA
+                        </h4>
+                        <p style="font-size:0.95rem; color:#555; line-height: 1.7; text-align: justify;">
+                            專為孕婦設計的放鬆療程，透過輕柔的按摩、舒緩的芳香療法和安全的護理，幫助減輕孕期的不適，如背痛、浮腫和壓力，讓孕婦在舒適與放鬆中享受健康的身心調養。
+                        </p>
+                    </div>
+
+                    <div style="margin-bottom: 35px;">
+                        <h4 style="color:var(--dark-purple); font-size:1.2rem; margin-bottom:8px;">
+                            <i class="fa-solid fa-droplet text-gold" style="margin-right: 8px;"></i>泌乳護理 SPA
+                        </h4>
+                        <p style="font-size:0.95rem; color:#555; line-height: 1.7; text-align: justify;">
+                            透過專業的乳房按摩，改善乳腺血液循環，幫助排除乳腺堵塞，促進乳汁分泌流暢，減少塞奶和乳房脹痛的情況。不僅有助於產後乳腺的暢通，還能讓媽媽在親餵時感到更加舒適，減少不適感，讓哺乳過程變得更輕鬆自在。
+                        </p>
+                    </div>
+
+                    <a href="https://line.me/R/ti/p/@YourLineID?text=我想預約孕婦按摩" class="btn btn-outline">預約按摩時段</a>
                 </div>
             </div>
         </div>
     </section>
 
-    <section id="beauty" class="section-padding beauty-section">
+    <section id="beauty" class="section-padding" style="background-color: #f3f0f7;">
         <div class="container">
-            <div class="text-center">
-                <h2 class="text-purple">高訂美顏護理</h2>
-                <p style="margin-top:10px;">孕期/產後皆可安心體驗的科技煥膚，打造白鑽燈泡肌</p>
+            <div class="text-center section-header">
+                <h2 class="text-purple">高訂美顏・極致護理</h2>
+                <p class="text-muted" style="font-size: 1.05rem; margin-top: 15px;">
+                    以<strong>「孕婦安規」</strong>的最高標準，呵護每一位追求完美的妳。<br>
+                    無論是孕期保養或日常急救，皆能享受最純淨的科技煥膚。
+                </p>
             </div>
 
-            <div class="beauty-card-container">
-                <div class="beauty-card">
-                    <div style="font-size:2rem; margin-bottom:10px;">💎</div>
-                    <h4>白鑽燈泡肌</h4>
-                    <p style="font-size:0.9rem; color:#666;">擊退暗沉蠟黃，重現透亮光澤，適合追求素顏發光的妳。</p>
-                </div>
-                <div class="beauty-card">
-                    <div style="font-size:2rem; margin-bottom:10px;">💧</div>
-                    <h4>液態飛梭</h4>
-                    <p style="font-size:0.9rem; color:#666;">深層清潔毛孔，溫和代謝粉刺，孕期皮膚管理首選。</p>
-                </div>
-                <div class="beauty-card">
-                    <div style="font-size:2rem; margin-bottom:10px;">⚡</div>
-                    <h4>極致超胜刀</h4>
-                    <p style="font-size:0.9rem; color:#666;">非侵入式緊緻拉提，針對產後鬆弛與輪廓線管理。</p>
+            <div class="beauty-concept-box">
+                <div class="concept-content">
+                    <h3 class="serif concept-title">為什麼需要定期護膚？</h3>
+                    
+                    <p class="concept-text">
+                        做臉不只是清潔，而是一場肌膚的深層儀式。透過專業的去角質、負壓清潔與導入，能帶走日常洗臉無法清除的深層髒污，促進臉部循環。
+                        <br><br>
+                        <strong>在亞莉，我們定義的「頂級」是「極致安全」。</strong>
+                        <br>
+                        我們堅持全系列療程皆採用<span style="color:var(--dark-purple); font-weight:bold;">「孕婦/敏弱肌專用」</span>的溫和規格。
+                        這意味著，<strong style="text-decoration: underline; text-decoration-color: var(--accent-gold);">不論您是準媽咪，還是重視保養的都會女性</strong>，
+                        都能在避開刺激性化學成分的前提下，改善乾燥、暗沉與粉刺，讓肌膚回到最健康、明亮的水煮蛋肌狀態。
+                    </p>
                 </div>
             </div>
-
-            <div class="text-center" style="margin-top: 40px;">
-                <p style="margin-bottom: 20px; font-weight: bold; color: var(--dark-purple);">✨ 截圖此畫面私訊，享 VIP 體驗評估 ✨</p>
-                <a href="https://line.me/R/ti/p/@YourLineID?text=我想評估美顏課程" class="btn btn-gold">私訊評估我的膚質</a>
+            
+            <div class="card-grid col-3">
+                <div class="service-card">
+                    <div class="card-icon">🌊</div>
+                    <h4 class="serif">水飛秀淨化護理</h4>
+                    <p class="desc">如同「毛孔吸塵器」般的基礎保濕療程。透過深海海藻的「負壓吸引」吸附髒污、油脂和粉刺，並進行功能導入。溫和清潔毛孔，使膚質細緻透亮。</p>
+                    <div class="tags">
+                        <span>#油性肌推薦</span><span>#毛孔粗大</span><span>#粉刺清潔</span>
+                    </div>
+                </div>
+                <div class="service-card">
+                    <div class="card-icon">✨</div>
+                    <h4 class="serif">微晶導入護理</h4>
+                    <p class="desc">高度客製化的調理療程。針對一般、乾性或混合肌膚調整精華。特別適合「外油內乾」的膚質，做完當下皮膚立即提亮，非常有感！</p>
+                    <div class="tags">
+                        <span>#客製化調理</span><span>#改善外油內乾</span><span>#約會前急救</span>
+                    </div>
+                </div>
+                <div class="service-card">
+                    <div class="card-icon">💎</div>
+                    <h4 class="serif">白鑽燈泡肌</h4>
+                    <p class="desc">利用新型胜肽酸與杏仁酸的小分子特性，溫和滲透。能減緩細紋、改善暗沉，打造如燈泡般自帶光圈的透亮感。</p>
+                    <div class="tags">
+                        <span>#婚前/孕期保養</span><span>#改善暗沉</span><span>#代謝色素</span>
+                    </div>
+                </div>
+                <div class="service-card">
+                    <div class="card-icon">💧</div>
+                    <h4 class="serif">α-GA1 液態飛梭</h4>
+                    <p class="desc">敏弱肌也能做的肌膚重建。主成分為輔酶酵素，非酸類。針對長痘無法改善、油性或敏感肌膚，讓皮膚變細緻且不會變薄。</p>
+                    <div class="tags">
+                        <span>#敏感肌友善</span><span>#痘痘調理</span><span>#肌膚重建</span>
+                    </div>
+                </div>
+                <div class="service-card">
+                    <div class="card-icon">⚡</div>
+                    <h4 class="serif">極致超胜刀</h4>
+                    <p class="desc">抗老緊緻首選。含有高濃度的三胜肽至六胜肽，透過導入讓肌膚深層吸收。有效延緩鬆弛、改善老化，修護彈性。</p>
+                    <div class="tags">
+                        <span>#緊緻抗皺</span><span>#撫平細紋</span><span>#輪廓線管理</span>
+                    </div>
+                </div>
+                <div class="service-card cta-card">
+                    <div>
+                        <h4 class="serif" style="color: white; border:none;">不知道怎麼選？</h4>
+                        <p style="color: rgba(255,255,255,0.9); margin: 15px 0;">無論您是孕期或一般保養，<br>歡迎傳送素顏照，線上免費評估。</p>
+                        <a href="https://line.me/R/ti/p/@YourLineID" class="btn btn-gold" style="background: white; color: var(--accent-gold); border: none;">私訊諮詢膚況</a>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
-    <section id="spa" class="section-padding">
+    <section id="spa" class="section-padding" style="background-color: #fdfbf7;">
         <div class="container">
-            <div class="service-row reverse">
-                <div class="service-img">
-                    <img src="https://images.unsplash.com/photo-1544161515-4ab6ce6db874?q=80&w=1000&auto=format&fit=crop" alt="SPA熱石">
+            <div class="text-center section-header">
+                <h2 class="text-purple">身心靈 SPA 療癒</h2>
+                <p class="text-muted">
+                    釋放深層壓力，啟動身體自我修復力。<br>
+                    從純手技放鬆、能量儀器調理，到極致美胸養護。
+                </p>
+            </div>
+
+            <div class="card-grid col-2">
+                <div class="service-card">
+                    <div class="card-icon"><i class="fa-solid fa-hands-bubbles"></i></div>
+                    <h4 class="serif">全身紓壓 SPA</h4>
+                    <p class="desc">100% 純手技按摩，搭配頂級<strong>多特瑞精油</strong>。針對經絡、穴位與淋巴深層按壓，釋放背部與腿部壓力，享受極致放鬆。</p>
+                    <div class="card-divider"></div>
+                    <div class="tags">
+                        <span>#全身緊繃</span><span>#肩頸痠痛</span><span>#多特瑞精油</span>
+                    </div>
                 </div>
-                <div class="service-text">
-                    <h3>身心靈 SPA 療癒</h3>
-                    <p>結合能量熱石與東方鬆筋技法，釋放深層壓力，啟動身體自我修復力。</p>
-                    <ul class="service-list">
-                        <li><i class="fa-solid fa-spa"></i> 全身紓壓按摩</li>
-                        <li><i class="fa-solid fa-fire"></i> 能量熱石護理</li>
-                        <li><i class="fa-solid fa-hand-sparkles"></i> 能量鬆筋調理</li>
-                    </ul>
-                    <a href="https://line.me/R/ti/p/@YourLineID?text=我想了解SPA課程" class="btn btn-outline" style="border-color:var(--primary-purple); color:var(--primary-purple);">查看放鬆方案</a>
+                <div class="service-card">
+                    <div class="safe-badge">❤️ 無痛・無電流感</div>
+                    <div class="card-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                    <h4 class="serif">能量鬆筋 SPA</h4>
+                    <p class="desc">利用 70KHz 高週波同頻震盪儀器，使皮下組織加溫 2°C，促進代謝並平衡酸性體質。比純手技更深層！</p>
+                    <div class="card-divider"></div>
+                    <div class="tags">
+                        <span>#深層鬆筋</span><span>#改善睡眠</span><span>#調整體質</span>
+                    </div>
                 </div>
+                <div class="service-card">
+                    <div class="card-icon"><i class="fa-solid fa-fire-burner"></i></div>
+                    <h4 class="serif">能量熱石 SPA</h4>
+                    <p class="desc">利用加熱玄武石的溫暖，深入肌肉層化解緊繃，吸附體內濕氣。全程溫溫熱熱的包覆感，是冬天或冷氣房裡的救贖。</p>
+                    <div class="card-divider"></div>
+                    <div class="tags">
+                        <span>#怕痛首選</span><span>#改善手腳冰冷</span><span>#去濕氣</span>
+                    </div>
+                </div>
+                <div class="service-card">
+                    <div class="safe-badge" style="background:var(--accent-gold);">✨ 人氣推薦 ✨</div>
+                    <div class="card-icon"><i class="fa-solid fa-venus"></i></div>
+                    <h4 class="serif">隱形馬甲育胸術</h4>
+                    <p class="desc">透過深層手技改善乳腺不通。解決<strong>胸悶、外擴、下垂</strong>。讓胸部恢復飽滿立體、彈性緊實。</p>
+                    <div class="card-divider"></div>
+                    <div class="tags">
+                        <span>#改善胸悶</span><span>#集中托高</span><span>#產後美胸</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center" style="margin-top: 50px;">
+                <a href="https://line.me/R/ti/p/@YourLineID" class="btn btn-outline">預約放鬆時段</a>
             </div>
         </div>
     </section>
@@ -539,15 +1001,12 @@
         </div>
     </section>
 
-    <footer style="background: var(--text-charcoal); color: #ccc; padding: 50px 0;">
+    <footer style="background: var(--text-charcoal); color: #ccc; padding: 60px 0;">
         <div class="container text-center">
-            <h3 class="serif" style="color: white; margin-bottom: 20px;">亞莉孕婦SPA</h3>
-            <p><i class="fa-solid fa-location-dot"></i> 地址：請輸入您的店面地址</p>
-            <p><i class="fa-solid fa-phone"></i> 電話：02-1234-5678</p>
-            <p><i class="fa-solid fa-clock"></i> 營業時間：10:00 - 20:00 (全預約制)</p>
-            <div style="margin-top: 30px; font-size: 0.8rem;">
-                &copy; 2026 Ali Pregnancy SPA. All Rights Reserved.
-            </div>
+            <h3 style="font-family: 'Noto Serif TC', serif; color: var(--accent-gold); font-size: 1.8rem; margin-bottom: 5px;">亞莉孕婦SPA</h3>
+            <p style="font-size: 0.8rem; letter-spacing: 2px; color: #999; margin-bottom: 25px; text-transform: uppercase;">PREGNANCY SPA MASSAGE</p>
+            
+            <p style="font-size: 0.9rem; letter-spacing: 1px;">&copy; 2026 Ali Pregnancy SPA. All Rights Reserved.</p>
         </div>
     </footer>
 
@@ -559,6 +1018,13 @@
             <i class="fa-brands fa-line"></i> LINE 線上預約
         </a>
     </div>
+
+    <script>
+        function toggleMenu() {
+            var menu = document.getElementById("navMenu");
+            menu.classList.toggle("active");
+        }
+    </script>
 
 </body>
 </html>
